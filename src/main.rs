@@ -5,5 +5,9 @@ fn main() {
         println!("test");
         println!("test");
         println!("test");
+        println!("test");
+        println!("test");
+        println!("test");
+        println!("test");
     }
 }
