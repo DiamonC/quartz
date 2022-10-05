@@ -1,10 +1,11 @@
 // importing packages
-const express = require("express");
+const express = require('express');
 const app = express();
-const hello = require(".routes/hello");
-app.use('/hello', hello);
+const hello = require('./routes/hello');
 // middlewares
 app.use(express.json());
+// adding routes
+app.use('/hello', hello);
 // port
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5500;
 app.listen(port, () => console.log(`Listening on Port: ${port}`));
