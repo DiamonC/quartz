@@ -7,7 +7,7 @@ app.use(express.json());
 // adding routes
 app.use("/hello", require("./routes/hello"));
 app.use("/account", account);
-app.use('/api/discord', require('./api/discord'));
+app.use("/routes/discord", require("./routes/discord"));
 // port
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Listening on Port: ${port}`));
