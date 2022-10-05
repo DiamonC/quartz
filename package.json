@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "scripts": {
+		"server": "nodemon index.js"
+	},
   "keywords": [],
   "author": "",
   "license": "GPL-3.0-or-later",
