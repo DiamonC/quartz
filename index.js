@@ -1,6 +1,8 @@
 // importing packages
-const express = require('express');
+const express = require("express");
 const app = express();
+const hello = require(".routes/hello");
+
 // middlewares
 app.use(express.json());
 // port
