@@ -1,8 +1,20 @@
-FROM rust:1.31
+FROM node:18
 
-WORKDIR /usr/src/quartz
+# Create app directory
+WORKDIR /usr/src/observer
+
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY package*.json ./
+
+RUN npm install
+# If you are building your code for production
+# RUN npm ci --only=production
+
+# Bundle app source
 COPY . .
 
-RUN cargo install --path .
+EXPOSE 4000
 
-CMD ["quartz"]
+CMD [ "node", "index.js" ]
