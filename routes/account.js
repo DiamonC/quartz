@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 router.get(`/`, function (req, res) {
-	res.status(200).json('./storage/accounts/bob.js');
+	res.status(200).json('./storage/accounts/bob.json');
 });
 router.post(`/`, function (req, res) {
 	res.status(200).json({msg: `It's a POST request.`});
