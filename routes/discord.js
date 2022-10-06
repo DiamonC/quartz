@@ -1,5 +1,5 @@
 const express = require('express');
-const fetch = require('node-fetch');
+const fetch = import('node-fetch');
 const btoa = require('btoa');
 const { catchAsync } = require('../utils');
 const router = express.Router();
