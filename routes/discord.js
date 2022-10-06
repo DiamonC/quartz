@@ -8,7 +8,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 const redirect = encodeURIComponent(
-  "http://localhost:4000/api/discord/callback"
+  "http://localhost:4000/discord/callback"
 );
 
 router.get("/login", (req, res) => {
