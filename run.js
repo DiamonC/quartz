@@ -1,15 +1,18 @@
 // importing packages
 const express = require("express");
 const app = express();
+const path = require("path");
+
+app.get('/', (req, res) => {
+  res.status(200).sendFile(path.join(__dirname, 'index.html'));
+});
 
 
-
-const account = require("./routes/account");
 // middlewares
 app.use(express.json());
 // adding routes
-app.use("/hello", require("./routes/hello"));
-app.use("/account", account);
+
+
 app.use("/discord", require("./routes/discord"));
 // port
 const port = process.env.PORT || 4000;
