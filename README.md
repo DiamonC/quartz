@@ -9,7 +9,7 @@ Quartz is a backend for Arth Panel, an open-source & self-hosted minecraft serve
 Quartz is intended to be run as a docker contaner. The frontend, Observer, will need to run as well (preferrably also as a docker container) in order for the panel to function. Docker images are not available yet.
 
 ## Current State
-Currently quartz is not runnable and is in need of contributors. The creator of the Arth Panel project DiamonC has very limited knowledge of Rust & Backend. The frontend has basic UI but major developnment on that can't continue until a basic backend is working.
+Quartz only has basic auth so far and no account system, or server system, and is thus still in early developnment
 
 
 ## Why Arth Panel?
@@ -23,6 +23,6 @@ Contributions are very much appreciated! Feel free to contribute, preferably som
 # To-do list
 ❌ Basic Database that stores details about servers.  
 ❌ Basic API that provides details about servers to frontend.  
-❌ Basic Account system w/ Microsoft and ability for more in the future.  
+❌ Basic Account system w/ Discord and ability for more in the future.  
 ❌ Basic handling of running and stopping jarfiles with quartz  
 ❌ Webhook communication with frontend for terminal  
