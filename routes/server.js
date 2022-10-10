@@ -5,7 +5,7 @@ let techname;
 let name = "MySurvival Server"
 router.get(`/`, function (req, res) {
 	 techname = req.headers.techname;
-	res.status(200).json({server_technical_name: `${techname}`, server_name: `${name}`, server_status: `online`});
+	res.status(200).json({server_technical_name: `${techname}`, server_name: `${name}`, server_status: `online`, version: `1.16.5`, software: `paper`});
     console.log(req.headers.techname);
 });
 router.post(`/`, function (req, res) {
