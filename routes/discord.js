@@ -1,5 +1,5 @@
 const express = require('express');
-const fetch = import('node-fetch');
+const fetch = require('node-fetch');
 const btoa = require('btoa');
 const { catchAsync } = require('../utils');
 const router = express.Router();
@@ -8,7 +8,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 const redirect = encodeURIComponent(
-  "http://localhost:4000/discord/callback"
+  "https://localhost:4000/discord/callback/"
 );
 
 router.get("/login", (req, res) => {
@@ -29,7 +29,7 @@ router.get('/callback', catchAsync(async (req, res) => {
       },
     });
   const json = await response.json();
-  res.redirect(`/?token=${json.access_token}`);
+  res.redirect(`/discord/callback/?token=${json.access_token}`);
 }));
 
 module.exports = router;
