@@ -18,6 +18,7 @@ router.get(`/change-state`, function (req, res) {
   state = req.headers.request;
   if ((state == "start") | (state == "stop") | (state == "restart")) {
     res.status(202).json({ msg: `Success. Server will ${state}.` });
+	console.log(req.headers.request);
   } else {
     res
       .status(404)
