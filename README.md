@@ -5,8 +5,10 @@ Quartz is a backend for Arth Panel, an open-source & self-hosted minecraft serve
 
 
 # How to Run
+The reccomended way to run observer is in a docker container. You can pull the image with `docker pull arthmc/quartz:latest`, and run with `docker run -p 4000:4000 arthmc/quartz:latest`, with the `-p` flag exposing port 4000. The environment variables `CLIENT_ID` and `CLIENT_SECRET` can be used to connect to your discord app for signin with discord.
 
-Quartz is intended to be run as a docker contaner. The frontend, Observer, will need to run as well (preferrably also as a docker container) in order for the panel to function. Docker images are not available yet.
+
+### Check out our [frontend](https://github.com/arthmc/observer)'s progress  
 
 ## Current State
 Quartz only has basic auth so far and no account system, or server system, and is thus still in early developnment
