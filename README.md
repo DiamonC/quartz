@@ -21,8 +21,8 @@ The main difference between an alternative like pufferpanel or pterodactyl is th
 
 Contributions are very much appreciated! Feel free to contribute, preferably something on the to-do list. Feel free to open up an issue if you have questions about planned features, API specifications, frontend, etc.
 
-# To-do list
-🔨 Temporary endpoints to further the developnment of frontend
+# To-do list 
+🔨 Temporary endpoints to further the developnment of frontend  
 ❌ Basic Database that stores details about servers.  
 ❌ Basic API that provides details about servers to frontend.  
 ❌ Basic Account system w/ Discord and ability for more in the future.  
