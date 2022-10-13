@@ -1,9 +1,10 @@
-const app = require("express")();
-const http = require("http").Server(app);
+const express = require("express");
+const router = express.Router();
+const http = require("http").Server(express);
 const io = require("socket.io")(http);
-const port = process.env.PORT || 4001;
+const port = process.env.PORT || 4000;
 
-app.get("/", (req, res) => {
+router.get("/", (req, res) => {
   res.sendFile(__dirname + "/terminal.html");
 });
 
@@ -16,3 +17,4 @@ io.on("connection", (socket) => {
 http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);
 });
+module.exports = router;
