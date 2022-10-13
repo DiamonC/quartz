@@ -19,3 +19,9 @@ io.on("connection", (socket) => {
 server.listen(4001, () => {
   console.log("listening on *:4001");
 });
+
+io.on('connection', (socket) => {
+    socket.on('chat message', (msg) => {
+      console.log('message: ' + msg);
+    });
+  });
