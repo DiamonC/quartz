@@ -11,8 +11,12 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('Connection Established');
-});
+    console.log('A user connected');
+    socket.on('disconnect', () => {
+      console.log('A user disconnectedd');
+    });
+  });
+  
 
 server.listen(4001, () => {
   console.log('listening on *:4001');
