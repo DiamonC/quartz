@@ -13,7 +13,6 @@ app.use(express.json());
 
 app.use("/discord", require("./routes/discord"));
 app.use("/server", require("./routes/server"));
-app.use("/terminal", require("./routes/terminal"));
 // port
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Listening on Port: ${port}`));
