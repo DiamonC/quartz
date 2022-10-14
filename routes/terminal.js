@@ -4,7 +4,7 @@ const http = require("http").Server(express);
 const io = require("socket.io")(http);
 const port = process.env.PORT || 4001;
 
-router.get("/terminal", (req, res) => {
+router.get("/", (req, res) => {
   res.sendFile(__dirname + "/terminal.html");
 });
 
