@@ -1,4 +1,5 @@
-# Quartz
+[![Get at Docker Hub](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/arthmc/observer)
+# Quartz 
 
 Quartz is a backend for Arth Panel, an open-source & self-hosted minecraft server panel. Quartz is meant to be run as a docker container, and is made with Node.
 
