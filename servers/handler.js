@@ -1,10 +1,11 @@
+const { spawn } = require("child_process").spawn;
 const { exec } = require("child_process");
-const fs = require("fs.extra");
+
 const path = "java/17/bin/java";
 const techname = "yourserver";
 exec(`cp -r template ${techname}`);
 
-exec(
+spawn(
   `../${path} -jar server.jar`,
   { cwd: `${techname}` },
   (error, stdout, stderr) => {
