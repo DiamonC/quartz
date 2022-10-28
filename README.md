@@ -1,25 +1,28 @@
-# Quartz
+[![Get at Docker Hub](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/arthmc/quartz)
+# Quartz 
 
-Quartz is a backend for Arth Panel, an open-source & self-hosted minecraft server panel. Quartz is meant to be run as a docker container, and is made with Node.
+Quartz is a backend for Arth Panel, an open-source & self-hosted minecraft server panel. Quartz is meant to be run as a docker container, and is made with Node. For testing purposes, there is an instance of quartz you can use at https://api.arthmc.xyz/
 
+## How to Run
 
-# How to Run
-The reccomended way to run observer is in a docker container. You can pull the image with `docker pull arthmc/quartz:latest`, and run with `docker run -p 4000:4000 arthmc/quartz:latest`, with the `-p` flag exposing port 4000. The environment variables `CLIENT_ID` and `CLIENT_SECRET` can be used to connect to your discord app for signin with discord.
+1. Download the image from docker hub with the command `sudo docker pull arthmc/quartz:latest`
+2. Run the image with `sudo docker run -p 4000:4000 arthmc/quartz:latest`. To change the port, replace the first 4000 with the port number you want.
 
+# Contributing
+
+- Make sure you install the pagackes by running `npm i`
+- To run the code, enter the command `node run`
+
+## Contributing Guidelines
+
+- Please format your code with Prettier VSCode extension, or an alternative that achieves the same results.  
 
 ### Check out our [frontend](https://github.com/arthmc/observer)'s progress  
-
-## Current State
-Quartz only has basic auth so far and no account system, or server system, and is thus still in early developnment. 
 
 
 ## Why Arth Panel?
 The main difference between an alternative like pufferpanel or pterodactyl is that it's meant to work in a way so that if an issue were to occur, you could easily just SSH into the machine and run the jar directly in a folder, so you know that your server's uptime is not dependant on a panel someone else made working flawlessly.  
 
-
-## Contributing
-
-Contributions are very much appreciated! Feel free to contribute, preferably something on the to-do list. Feel free to open up an issue if you have questions about planned features, API specifications, frontend, etc.
 
 # To-do list 
 🔨 Temporary endpoints to further the developnment of frontend  
