@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 4000
 
 # Run the app
-CMD [ "node", "run" ]
+CMD ["./pocketbase", "serve", "&", "node", "run" ]
