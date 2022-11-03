@@ -2,13 +2,14 @@
 const express = require("express");
 const app = express();
 const path = require("path");
+const cors = require("cors");
 
 app.get("/", (req, res) => {
   res.status(200).sendFile(path.join(__dirname, "index.html"));
 });
 
 // middlewares
-app.use(express.json());
+app.use(express.json(), cors());
 // adding routes
 
 app.use("/discord", require("./routes/discord"));
