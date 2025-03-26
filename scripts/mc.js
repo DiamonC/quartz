@@ -300,6 +300,15 @@ function run(
 
     let threadsString = thread1 + "," + thread2 + "," + thread3 + "," + thread4;
 
+    //clear any existing items with the same id
+    for (let i = 0; i < serversOnThreads.length; i++) {
+      if (serversOnThreads[i].id == id) {
+        serversOnThreads.splice(i, 1);
+        break;
+      }
+    }
+
+
     serversOnThreads.push({id: id, threads: threadsString});
 
 
