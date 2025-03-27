@@ -194,17 +194,16 @@ function run(
       }
     }
     let allocatedRAM;
-    //the .1 adds a bit of extra space for java to work with
     if (config.basic == server.productID) {
-      allocatedRAM = 4.1;
+      allocatedRAM = 4;
     } else if (config.plus == server.productID) {
-      allocatedRAM = 6.1;
+      allocatedRAM = 6;
     } else if (config.premium == server.productID) {
-      allocatedRAM = 8.1;
+      allocatedRAM = 8;
     } else if (config.max == server.productID) {
-      allocatedRAM = 12.1;
+      allocatedRAM = 12;
     }else {
-      allocatedRAM = 4.1;
+      allocatedRAM = 4;
     }
     let args = [
       "-Xmx" +
@@ -313,8 +312,8 @@ function run(
     serversOnThreads.push({id: id, threads: threadsString});
 
 
-
-    let prefix = `docker run -m ${allocatedRAM}g -i -v ${absolutePath}/servers/${id}:/server -w /server -p ${port}:${port}/tcp -p ${port}:${port}/udp -p ${port + 66}:${port + 66}/tcp -p ${port + 33}:${port + 33}/udp --user 1000:1000 --cpuset-cpus="${threadsString}" openjdk:${javaVer} java`;
+    //the .1 is to let java have some extra room to prevent crashes
+    let prefix = `docker run -m ${allocatedRAM}.1g -i -v ${absolutePath}/servers/${id}:/server -w /server -p ${port}:${port}/tcp -p ${port}:${port}/udp -p ${port + 66}:${port + 66}/tcp -p ${port + 33}:${port + 33}/udp --user 1000:1000 --cpuset-cpus="${threadsString}" openjdk:${javaVer} java`;
     console.log("prefix: " + prefix);
 
     let doneInstallingServer = false;
