@@ -73,6 +73,9 @@ router.get(`/reserve`, function (req, res) {
       resObj.atCapacity = false;
     }
     resObj.id = id;
+    if (id == idOffset-1) {
+      id = -1;
+    }
     res.status(200).json(resObj);
     //note: once tsv system is fully implemented, the server should be written to the tsv file so the session can be cleared even if quartz restarts
   } else {
