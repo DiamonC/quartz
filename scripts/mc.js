@@ -194,16 +194,17 @@ function run(
       }
     }
     let allocatedRAM;
+    //the .1 adds a bit of extra space for java to work with
     if (config.basic == server.productID) {
-      allocatedRAM = 4;
+      allocatedRAM = 4.1;
     } else if (config.plus == server.productID) {
-      allocatedRAM = 6;
+      allocatedRAM = 6.1;
     } else if (config.premium == server.productID) {
-      allocatedRAM = 8;
+      allocatedRAM = 8.1;
     } else if (config.max == server.productID) {
-      allocatedRAM = 12;
+      allocatedRAM = 12.1;
     }else {
-      allocatedRAM = 4;
+      allocatedRAM = 4.1;
     }
     let args = [
       "-Xmx" +
