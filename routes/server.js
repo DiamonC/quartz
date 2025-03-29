@@ -146,7 +146,7 @@ router.get(`/claim/:id`, function (req, res) {
                       res.status(400).json({ msg: `Server already claimed.` });
                     }
                   } else {
-                    res.status(400).json({ msg: `You have not payed for this server.` });
+                    res.status(400).json({ msg: `You have not paid for this server.` });
                   }
                 }
               );
