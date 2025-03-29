@@ -92,9 +92,6 @@ const backups = require("./scripts/backups.js");
 
 
 
-try {ftp.startFtpServer();} catch (e) {
-  console.log("Error starting FTP server " + e);
-}
 
 if (!fs.existsSync("accounts")) {
   fs.mkdirSync("accounts");
@@ -110,6 +107,11 @@ if (!fs.existsSync("./servers")) {
   fs.rmSync("./servers/template", { recursive: true });
 }
 const ftp = require("./scripts/ftp.js");
+
+
+try {ftp.startFtpServer();} catch (e) {
+  console.log("Error starting FTP server " + e);
+}
 
 const migrations = require("./scripts/migrations.js");
 
