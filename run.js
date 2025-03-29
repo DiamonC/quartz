@@ -92,8 +92,8 @@ const backups = require("./scripts/backups.js");
 
 
 
-try {ftp.startFtpServer();} catch {
-  console.log("Error starting FTP server");
+try {ftp.startFtpServer();} catch (e) {
+  console.log("Error starting FTP server " + e);
 }
 
 if (!fs.existsSync("accounts")) {
