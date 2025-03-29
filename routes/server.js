@@ -85,6 +85,7 @@ router.get(`/reserve`, function (req, res) {
 );
 
 router.get(`/claim/:id`, function (req, res) {
+try {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -165,6 +166,11 @@ router.get(`/claim/:id`, function (req, res) {
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
   }
+} catch (err) {
+  
+  console.log(err);
+  res.status(500).send({ error: err });
+}
 });
 
 router.get(`/:id`, function (req, res) {
