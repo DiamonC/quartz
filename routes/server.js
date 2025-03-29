@@ -136,7 +136,7 @@ router.get(`/claim/:id`, function (req, res) {
                   }
 
                   if (hasPayedForServer) {
-                    if (!account.servers.includes(id)) {
+                    if (!account.servers.includes(id) && !fs.existsSync("servers/" + id)) { 
                       account.servers.push(id);
                       writeJSON("accounts/" + email + ".json", account);
                       //to-do: make a way to write the account tsv file
