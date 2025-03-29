@@ -129,11 +129,12 @@ router.get(`/claim/:id`, function (req, res) {
                   console.log("account.servers: " + JSON.stringify(account));
                   try {
                   hasPayedForServer = subs + freeServers > account.servers.length;
+                  console.log("hasPayedForServer3: " + subs + " "+freeServers + ">" + account.servers.length);
                   } catch (err) {
 
                     hasPayedForServer = false; 
                   }
-                  console.log("hasPayedForServer3: " + subs + " "+freeServers + ">" + account.servers.length);
+
                   if (hasPayedForServer) {
                     if (!account.servers.includes(id)) {
                       account.servers.push(id);
