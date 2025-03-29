@@ -125,7 +125,7 @@ router.get(`/claim/:id`, function (req, res) {
                   if (account.freeServers != undefined) {
                     freeServers = parseInt(account.freeServers);
                   }
-                  console.log("account.servers: " + account);
+                  console.log("account.servers: " + JSON.stringify(account));
                   hasPayedForServer = subs + freeServers > account.servers.length;
                   console.log("hasPayedForServer3: " + subs + " "+freeServers + ">" + account.servers.length);
                   if (hasPayedForServer) {
