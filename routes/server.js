@@ -558,6 +558,7 @@ router.post(`/new/:id`, function (req, res) {
               server.software = req.body.software;
               server.version = req.body.version;
               server.specialDatapacks = req.body.addons;
+              server.allowedAccounts = "";
               server.accountId = account.accountId;
               server.id = id;
               server.specialPlugins = [];
@@ -890,6 +891,10 @@ router.get(`/:id/getInfo`, function (req, res) {
     }
 
     let automaticStartup = false;
+    if (server.allowedAccounts == undefined) {
+    
+      server.allowedAccounts = "";
+    } 
     //if allowedAccounts begins with a , remove it
     if (server.allowedAccounts.startsWith(",")) {
       server.allowedAccounts = server.allowedAccounts.substring(1);
