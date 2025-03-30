@@ -1015,7 +1015,7 @@ function run(
       if (!fs.existsSync(folder + "/plugins/Geyser-Spigot")) {
         fs.mkdirSync(folder + "/plugins/Geyser-Spigot");
       }
-      if (!server.adminServer) {
+      if (!server.adminServer && !fs.existsSync(folder + "/plugins/Geyser-Spigot/config.yml")) {
         fs.writeFileSync(folder + "/plugins/Geyser-Spigot/config.yml", text);
       }
 
@@ -1055,7 +1055,7 @@ function run(
       if (!fs.existsSync(folder + "/plugins/Geyser-Velocity")) {
         fs.mkdirSync(folder + "/plugins/Geyser-Velocity");
       }
-      if (!server.adminServer) {
+      if (!server.adminServer && !fs.existsSync(folder + "/plugins/Geyser-Velocity/config.yml")) {
         fs.writeFileSync(folder + "/plugins/Geyser-Velocity/config.yml", text);
       }
       fs.copyFile(

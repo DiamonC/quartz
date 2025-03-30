@@ -1742,10 +1742,8 @@ router.post("/:id/file/:path", function (req, res) {
       fs.existsSync(`servers/${req.params.id}/${path}`) &&
       
       filename != "server.json" &&
-      filename != "velocity.toml" &&
       filename != "modrinth.index.json" &&
       filename != "curseforge.index.json" &&
-      !path.includes("Geyser-") &&
       fs.statSync(`servers/${req.params.id}/${path}`).size <= 500000
     ) {
       if (
