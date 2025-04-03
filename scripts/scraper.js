@@ -333,7 +333,7 @@ function fullDownload() {
     setTimeout(() => downloadWorldgenMods(), 3000);
     setTimeout(() => downloadSnapshotJars(), 3500);
     setTimeout(() => downloadVanillaJars(), 4000);  
-    setTimeout(() => done(), 10000);
+    setTimeout(() => done(), 30000);
     } catch (e) {
         //console.log(e);
     }
