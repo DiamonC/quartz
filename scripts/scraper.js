@@ -90,6 +90,7 @@ async function downloadForgeJars() {
     console.log(minecraftVersions)
     for (let i in minecraftVersions) {
         let url = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_"+minecraftVersions[i].textContent.trim()+".html";
+        console.log(url)
         const response2 = await fetch(url);
         let forgeVersionsHtml = $(await response2.text());
 
