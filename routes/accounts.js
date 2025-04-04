@@ -75,7 +75,7 @@ Router.post("/email/signup/", (req, res) => {
         if (password.length >= 7) {
           if (!emailExists) {
             let accountId = "acc_"+base62.encode(nodeName+"*email:"+email.substring(0, 7));
-            console.log("base62 " + base62.encode(nodeName+"*email:"+email.substring(0, 7)))
+            console.log("base62 " + base62.encode("*email:"));
             [salt, password] = files.hash(password).split(":");
 
             account.password = password;
