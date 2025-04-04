@@ -11,6 +11,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@mysql/xdevapi": "^8.0.35",
+    "base62": "^2.0.2",
     "btoa": "^1.2.1",
     "cors": "^2.8.5",
     "decompress": "^4.2.1",

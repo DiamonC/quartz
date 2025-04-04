@@ -2,6 +2,7 @@ const express = require("express");
 const Router = express.Router();
 const fs = require("fs");
 const s = require("../scripts/stripe.js");
+const base62 = require("base62/lib/ascii");
 
 const { v4: uuidv4 } = require("uuid");
 const files = require("../scripts/files.js");
@@ -10,6 +11,8 @@ const writeJSON = require("../scripts/utils.js").writeJSON;
 const config = require("../scripts/utils.js").getConfig();
 const readJSON = require("../scripts/utils.js").readJSON;
 const enableCloudflareVerify = JSON.parse(config.enableCloudflareVerify);
+
+const nodeName = config.nodeName || "quartz";  
 
 function writeAccount(id, username, billingEmail, servers, stripeServers, freeServers, lastSignin, token, salt, password, resetAttempts) {
   let tsv = fs.readFileSync("accounts.tsv", "utf8").split("\n");
@@ -71,7 +74,7 @@ Router.post("/email/signup/", (req, res) => {
       if (password == confirmPassword) {
         if (password.length >= 7) {
           if (!emailExists) {
-            let accountId = uuidv4();
+            let accountId = base62.encode(nodeName+"*email:"+email);
             [salt, password] = files.hash(password).split(":");
 
             account.password = password;
@@ -303,7 +306,7 @@ Router.post("/discord/", (req, res) => {
         writeAccount(account.accountId, "discord:"+username, account.email, account.servers, 0, account.freeServers, account.lastSignin, account.token, account.salt, account.password, account.resetAttempts);
         res.status(200).send(response);
       } else {
-        let accountId = uuidv4();
+        let accountId = base62.encode(nodeName+"*discord:"+username);
 
         account.accountId = accountId;
         account.token = uuidv4();
