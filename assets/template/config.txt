@@ -1,3 +1,5 @@
+# Node name (Useful for multiple locations)
+nodeName=quartz
 # The address that servers will be ran under:
 address=arthmc.xyz
 # ID Offset (Recommended to be in increments of 100)
