@@ -74,8 +74,7 @@ Router.post("/email/signup/", (req, res) => {
       if (password == confirmPassword) {
         if (password.length >= 7) {
           if (!emailExists) {
-            let accountId = "acc_"+base62.encode(nodeName+"*email:"+email.substring(0, 7));
-            console.log("base62 " + base62.encode("*email:"));
+            let accountId = "acc_"+base62.decode(nodeName+"*email:"+email.substring(0, 7));
             [salt, password] = files.hash(password).split(":");
 
             account.password = password;
@@ -307,7 +306,7 @@ Router.post("/discord/", (req, res) => {
         writeAccount(account.accountId, "discord:"+username, account.email, account.servers, 0, account.freeServers, account.lastSignin, account.token, account.salt, account.password, account.resetAttempts);
         res.status(200).send(response);
       } else {
-        let accountId = "acc_"+base62.encode(nodeName+"*discord:"+username.substring(0, 7));
+        let accountId = "acc_"+base62.decode(nodeName+"*discord:"+username.substring(0, 7));
 
         account.accountId = accountId;
         account.token = uuidv4();
