@@ -53,7 +53,7 @@ router.get(`/servers`, function (req, res) {
   }
 });
 
-router.get(`/subscriptions`, function (req, res) {
+router.get(`/billing`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON(`accounts/${email}.json`);
