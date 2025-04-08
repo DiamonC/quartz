@@ -54,11 +54,12 @@ router.get(`/servers`, function (req, res) {
 });
 
 router.get(`/subscriptions`, function (req, res) {
-  email = req.headers.username;
-  token = req.headers.token;
-  account = readJSON(`accounts/${email}.json`);
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON(`accounts/${email}.json`);
   if (!enableAuth) email = "noemail";
   if (token === account.token || !enableAuth) {
+    let subscriptionsArray = [];
     stripe.customers.list(
       {
         limit: 100,
@@ -69,12 +70,7 @@ router.get(`/subscriptions`, function (req, res) {
           console.log("err", err);
         } else {
           if (customers.data.length == 0) {
-            res.status(200).json({
-              moddedSubscriptions: 0,
-              basicSubscriptions: 0,
-              subscriptions: 0,
-              freeServers: account.freeServers,
-            });
+            res.status(200).json({subscriptions: [], servers: []});
             return;
           }
           cid = customers.data[0].id;
@@ -86,34 +82,44 @@ router.get(`/subscriptions`, function (req, res) {
               limit: 100,
             },
             function (err, subscriptions2) {
-              let moddedSubscriptions = 0;
-              let basicSubscriptions = 0;
-              let premiumSubscriptions = 0;
-              let subscriptions = 0;
+          
 
               for (i in subscriptions2.data) {
                 let plan = subscriptions2.data[i].items.data[0].plan;
-                if (config.premium != "") {
-                  if (config.premium == plan.product) {
-                    premiumSubscriptions++;
-                    subscriptions++;
-                  } else if (config.plus == plan.product) {
-                    moddedSubscriptions++;
-                    subscriptions++;
-                  } else if (config.basic == plan.product) {
-                    basicSubscriptions++;
-                    subscriptions++;
-                  }
+                try {
+                  let name = "basic";
+                  if (config.plus == plan.product) name = "plus";
+                  if (config.premium == plan.product) name = "premium";
+                  subscriptionsArray.push({
+                      id: subscriptions2.data[i].id,
+                      product: plan.product,
+                      name: name,
+                      status: subscriptions2.data[i].status,
+                      price: plan.amount / 100,
+                      interval: plan.interval,
+                      currency: plan.currency,
+                      created: subscriptions2.data[i].created,
+                      canceled_at: subscriptions2.data[i].canceled_at,
+                    });
+                  
+                } catch {
+
+                }
+              }
+              let serversArray = [];
+              for (i in account.servers) {
+                if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
+                  let planName = "basic";
+                  if (account.servers[i].productID == config.plus) planName = "plus"; 
+                  if (account.servers[i].productID == config.premium) planName = "premium";
+                  serversArray.push(account.servers[i].id + ":" + planName);
                 } else {
-                  subscriptions++;
+                  serversArray.push(account.servers[i] + ":undefined");
                 }
               }
               res.status(200).json({
-                moddedSubscriptions: moddedSubscriptions,
-                basicSubscriptions: basicSubscriptions,
-                premiumSubscriptions: premiumSubscriptions,
-                subscriptions: subscriptions,
-                freeServers: account.freeServers,
+                subscriptions: subscriptionsArray,
+                servers: serversArray,
               });
             }
           );
