@@ -16,7 +16,8 @@ for (let i = 0; i < accountsFolder.length; i++) {
          for (let j = 0; j < data.servers.length; j++) {
             let server = data.servers[j];
             let tempToken = crypto.randomBytes(6).toString("hex");
-            
+            if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
+
             users.push(`${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`); 
          }
         }
