@@ -40,11 +40,11 @@ let usersArray = [];
 try {
     for (let i = 0; i < users.length; i++) {
         //if there isnt a duplicate mountpoint
-        if (!mountArray.includes(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/${users[i].split(":")[0]}" `)) {
-        mountArray.push(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/${users[i].split(":")[0]}" `);
+        if (!mountArray.includes(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/server" `)) {
+        mountArray.push(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/server" `);
     }
-    if (!usersArray.includes(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::${users[i].split(":")[0]}" `)) {
-        usersArray.push(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::${users[i].split(":")[0]}" `);
+    if (!usersArray.includes(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `)) {
+        usersArray.push(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `);
     }
     }
 } catch (e) {
