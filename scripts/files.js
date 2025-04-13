@@ -85,6 +85,7 @@ function readFilesRecursive(directoryPath) {
     if (file.charAt(0) != ".") {
       //replace any double slashes with single ones
       file = file.replace(/\/\//g, "/");
+      directoryPath = directoryPath.replace(/\/\//g, "/");
       const curPath = `${directoryPath}/${file}`;
 
       if (fs.lstatSync(curPath).isDirectory()) {
