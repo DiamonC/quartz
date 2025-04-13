@@ -87,6 +87,7 @@ function readFilesRecursive(directoryPath) {
       file = file.replace(/\/\//g, "/");
       directoryPath = directoryPath.replace(/\/\//g, "/");
       const curPath = `${directoryPath}/${file}`;
+      if (curPath.includes("python_embeded")) console.log(curPath);
 
       if (fs.lstatSync(curPath).isDirectory()) {
         const subDir = readFilesRecursive(curPath);
