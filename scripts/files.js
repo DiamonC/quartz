@@ -83,6 +83,8 @@ function readFilesRecursive(directoryPath) {
   files.forEach((file) => {
     //if it isn't a hidden file/directory
     if (file.charAt(0) != ".") {
+      //replace any double slashes with single ones
+      file = file.replace(/\/\//g, "/");
       const curPath = `${directoryPath}/${file}`;
 
       if (fs.lstatSync(curPath).isDirectory()) {
