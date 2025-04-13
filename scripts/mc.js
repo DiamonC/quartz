@@ -1190,7 +1190,8 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
                     modpack.currentVersionDateAdded = Date.now();
                     modpack.versionID = versionID;
                     writeJSON(folder + "/modrinth.index.json", modpack);
-                    return;
+                    return utils.refreshPermissions();
+                   
                   });
                 }
               }

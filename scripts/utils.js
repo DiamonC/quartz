@@ -38,4 +38,23 @@ function writeJSON(file, json) {
   }
 }
 
-module.exports = { getConfig, readJSON, writeJSON };
+function refreshPermissions() {
+  const { exec } = require("child_process");
+  exec("sudo chown sysadmin:100 -R servers/", (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error setting permissions: ${error}`);
+      return;
+    }
+    exec("sudo chmod 2776 -R servers/", (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error setting permissions: ${error}`);
+        return;
+      }
+      console.log("Permissions set successfully.");
+      return;
+    }); 
+ 
+  });
+}
+
+module.exports = { getConfig, readJSON, writeJSON, refreshPermissions };
