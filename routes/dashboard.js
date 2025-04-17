@@ -6,6 +6,7 @@ const config = require("../scripts/utils.js").getConfig();
 const utils = require("../scripts/utils.js");
 const files = require("../scripts/files.js");
 const f = require("../scripts/mc.js");
+const s = require("../scripts/stripe.js");
 
 Router.get("/verifyToken", (req, res) => {
   let tempToken = req.query.tempToken;
@@ -56,105 +57,14 @@ Router.get("/customers", async (req, res) => {
   if (req.query.tempToken != datajson.tempToken.split(":")[1]) {
     res.status(401).send({ error: "Unauthorized" });
   } else {
-    const customers = await stripe.customers.list({ limit: 100 });
-    let data = [];
-    for (let i = 0; i < customers.data.length; i++) {
-      let str = customers.data[i];
-      let valid = true;
-      let subs;
-      //get the scription object from stripe
-      try {
-        subs = await stripe.subscriptions.list({
-          customer: str.id,
-          status: "all",
-        });
-
-        subs = subs.data;
-      } catch (error) {
-        console.log(error);
+       s.getCustomers(async (err, customers) => {
+      if (err) {
+        console.error("Error fetching customers:", err);
+        return res.status(500).send({ error: "Internal server error" });
       }
 
-      let subscriptions = [];
-
-      for (let j = 0; j < subs.length; j++) {
-        let data = subs[j];
-        let plan = subs[j].items.data[0].plan;
-
-        let planType = "other";
-        if (config.basic == plan.product) planType = "basic";
-        else if (config.plus == plan.product) planType = "modded";
-        else if (config.premium == plan.product) planType = "premium";
-        else if (config.max == plan.product) planType = "max";
-        else valid = false;
-
-        if (planType != "other") {
-          if (data.status == "active") {
-            if (data.cancel_at != null) {
-              let reason = data.cancellation_details.comment;
-              if (reason == null) reason = data.cancellation_details.feedback;
-              subscriptions.push(
-                planType + ":canceled:" + data.cancel_at + ":" + reason
-              );
-            } else {
-              subscriptions.push(planType + ":active");
-            }
-          } else if (data.status == "canceled") {
-            subscriptions.push(
-              planType +
-                ":canceled:" +
-                data.canceled_at +
-                ":" +
-                data.cancellation_details.comment
-            );
-          } else {
-            subscriptions.push(
-              planType + ":" + data.status + ":" + data.ended_at
-            );
-          }
-        }
-      }
-
-      let qua;
-      let quaName;
-      if (fs.existsSync("accounts/email:" + str.email + ".json")) {
-        qua = utils.readJSON("accounts/email:" + str.email + ".json");
-      } else {
-        let accounts = fs.readdirSync("accounts");
-        for (let j in accounts) {
-          if (accounts[j].split(":")[0] != "email") {
-            let json = utils.readJSON("accounts/" + accounts[j]);
-            if (json.email == str.email.toLowerCase()) {
-              qua = json;
-              quaName = accounts[j];
-              break;
-            }
-          }
-        }
-      }
-      if (qua == undefined) {
-        qua = {
-          servers: [],
-        };
-      }
-      if (valid && subscriptions.length > 0) {
-        let customerData = [
-          {
-            email: str.email,
-            subscriptions: subscriptions,
-          },
-        ];
-        try {
-          customerData.push({
-            servers: qua.servers,
-            id: quaName,
-          });
-        } catch {}
-
-        data.push(customerData);
-      }
-    }
-
-    res.status(200).send(data);
+    res.status(200).send(customers);
+       });
   }
 });
 
