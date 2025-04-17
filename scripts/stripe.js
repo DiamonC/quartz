@@ -1,6 +1,7 @@
 let stripeKey = require("./utils.js").getConfig().stripeKey;
 const stripe = require("stripe")(stripeKey);
 const express = require("express");
+const config = require("./utils.js").getConfig();
 
 async function getCustomerID(email) {
   try {
