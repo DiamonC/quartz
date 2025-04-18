@@ -9,6 +9,17 @@ if (!fs.existsSync("./backups")) {
   fs.mkdirSync("./backups");
 }
 
+let backupKeys = [];
+let serversFolder = fs.readdirSync("./servers");
+for (let i = 0; i < serversFolder.length; i++) {
+  if (!isNaN(serversFolder[i])) {
+    backupKeys.push({
+      serverId: serversFolder[i],
+      key: Math.random().toString(36).substring(2, 15),
+    });
+  }
+}
+
 function cycle() {
   let serverFolderItems = fs.readdirSync("./servers");
   for (let i = 0; i < serverFolderItems.length; i++) {
@@ -130,7 +141,7 @@ function scheduleCycleAtUTC(hoursArray) {
 }
 
 scheduleCycleAtUTC([0, 6, 12, 18]);
-
+let allSlots = [];
 function getBackupSlots(serverId) {
   let serverFolder = fs.readdirSync(`./backups/${serverId}`);
   let backupSlots = [];
@@ -138,14 +149,21 @@ function getBackupSlots(serverId) {
     const filename = serverFolder[i];
     const timestampStr = filename.split(".")[0];
     const timestamp = Number(timestampStr);
+
     backupSlots.push({
       id: serverId,
       timestamp: timestamp,
       size: fs.statSync(`./backups/${serverId}/${filename}`).size,
+      key: backupKeys.find((key) => key.serverId == serverId).key,
     });
   }
   backupSlots.sort((a, b) => a.timestamp - b.timestamp);
+  allSlots[serverId] = backupSlots;
   return backupSlots;
 }
 
-module.exports = { getBackupSlots };
+function getBackupKey(serverId) {
+  return backupKeys.find((key) => key.serverId == serverId).key;
+}
+
+module.exports = { getBackupSlots, getBackupKey };

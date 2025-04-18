@@ -22,7 +22,7 @@ const enableVirusScan = JSON.parse(config.enableVirusScan);
 const portOffset = 10000;
 const idOffset = parseInt(config.idOffset);
 const stats = require("../scripts/stats.js");
-const { getBackupSlots } = require("../scripts/backups.js");
+const backups = require("../scripts/backups.js");
 
 function writeServer(
   id,
@@ -2306,7 +2306,7 @@ router.get("/:id/backups", function (req, res) {
   if (hasAccess(token, account, req.params.id)) {
     if (fs.existsSync(`backups/${req.params.id}/`)) {
       try {
-        res.status(200).json((backups = getBackupSlots(req.params.id)));
+        res.status(200).json(backups.getBackupSlots(req.params.id));
       } catch (e) {
         console.log(e);
         res.status(500).json({ msg: "Error getting backups." });
@@ -2322,8 +2322,11 @@ router.get("/:id/backup/:timestamp", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON(`servers/${req.params.id}/server.json`);
-  if (hasAccess(token, account, req.params.id)) {
-    if (fs.existsSync(`backups/${req.params.id}/${req.params.timestamp}.zip`)) {
+
+  if (fs.existsSync(`backups/${req.params.id}/${req.params.timestamp}.zip`)) {
+    console.log(req.query.key);
+    console.log(backups.getBackupKey(req.params.id));
+    if (req.query.key == backups.getBackupKey(req.params.id)) {
       try {
         res.setHeader("Content-Type", "application/zip");
         res.setHeader(
@@ -2343,6 +2346,8 @@ router.get("/:id/backup/:timestamp", function (req, res) {
     } else {
       res.status(401).json({ msg: "Invalid credentials." });
     }
+  } else {
+    res.status(500).json({ msg: "Error getting backups." });
   }
 });
 
