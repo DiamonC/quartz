@@ -16,6 +16,7 @@ private.pem
 /assets/data.json
 /assets/scraper.json
 /assets/uploads
+/backups
 config.json
 accounts.tsv
 servers.tsv
@@ -25,4 +26,4 @@ config.txt
 !/assets/template/config.txt
 bun.lockb
 assets/terminal-log.txt
-assets/scraper.json
+crashLog.txt
