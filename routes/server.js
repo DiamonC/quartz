@@ -2317,6 +2317,35 @@ router.get("/:id/backups", function (req, res) {
   }
 });
 
+router.get("/:id/backup/:timestamp", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON(`servers/${req.params.id}/server.json`);
+  if (hasAccess(token, account, req.params.id)) {
+    if (fs.existsSync(`backups/${req.params.id}/${req.params.timestamp}.zip`)) {
+      try {
+        res.setHeader("Content-Type", "application/zip");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${req.params.timestamp}.zip`
+        );
+        res
+          .status(200)
+          .download(
+            `backups/${req.params.id}/${req.params.timestamp}.zip`,
+            `${req.params.timestamp}.zip`
+          );
+      } catch (e) {
+        console.log(e);
+        res.status(500).json({ msg: "Error getting backups." });
+      }
+    } else {
+      res.status(401).json({ msg: "Invalid credentials." });
+    }
+  }
+});
+
 function hasAccess(token, account, id) {
   let server = readJSON(`servers/${id}/server.json`);
   if (!enableAuth) return true;
