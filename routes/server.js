@@ -22,10 +22,34 @@ const enableVirusScan = JSON.parse(config.enableVirusScan);
 const portOffset = 10000;
 const idOffset = parseInt(config.idOffset);
 const stats = require("../scripts/stats.js");
+const { getBackupSlots } = require("../scripts/backups.js");
 
-function writeServer(id, owner, state, name, software, version, productID, allowedAccounts, specialDatapacks, specialPlugins) {
+function writeServer(
+  id,
+  owner,
+  state,
+  name,
+  software,
+  version,
+  productID,
+  allowedAccounts,
+  specialDatapacks,
+  specialPlugins
+) {
   let tsv = fs.readFileSync("servers.tsv", "utf8").split("\n");
-  let row = [id, owner, state, name, software, version, productID, allowedAccounts, specialDatapacks, specialPlugins].join("\t") + "\n";
+  let row =
+    [
+      id,
+      owner,
+      state,
+      name,
+      software,
+      version,
+      productID,
+      allowedAccounts,
+      specialDatapacks,
+      specialPlugins,
+    ].join("\t") + "\n";
   let alreadyExists = false;
   for (let i in tsv) {
     if (tsv[i].split("\t")[0] == id) {
@@ -43,11 +67,11 @@ router.get(`/reserve`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   if (token === account.token || !enableAuth) {
-    let resObj = {atCapacity: true, id: -1};
+    let resObj = { atCapacity: true, id: -1 };
     //see if there is an available id
-    let id = idOffset -1;
+    let id = idOffset - 1;
     let serversFolder = fs.readdirSync("servers");
-    if (serversFolder.length  == 0) {
+    if (serversFolder.length == 0) {
       id = idOffset;
     }
     //remove any non-numerical folders
@@ -57,8 +81,7 @@ router.get(`/reserve`, function (req, res) {
     //sort numerically
     serversFolder.sort((a, b) => {
       return a - b;
-    }
-    );
+    });
     for (let i = idOffset; i < idOffset + serversFolder.length; i++) {
       console.log(i);
       if (!fs.existsSync("servers/" + i)) {
@@ -73,7 +96,7 @@ router.get(`/reserve`, function (req, res) {
       resObj.atCapacity = false;
     }
     resObj.id = id;
-    if (id == idOffset-1) {
+    if (id == idOffset - 1) {
       id = -1;
     }
     res.status(200).json(resObj);
@@ -81,11 +104,9 @@ router.get(`/reserve`, function (req, res) {
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
   }
-}
-);
+});
 
 router.get(`/claim/:id`, function (req, res) {
-
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -106,7 +127,9 @@ router.get(`/claim/:id`, function (req, res) {
               console.log("err");
               return "no";
             } else {
-              console.log("hasPayedForServer1: " + email + req.headers.username);
+              console.log(
+                "hasPayedForServer1: " + email + req.headers.username
+              );
               stripe.subscriptions.list(
                 {
                   customer: customers.data[0].id,
@@ -128,15 +151,25 @@ router.get(`/claim/:id`, function (req, res) {
                   }
                   console.log("account.servers: " + JSON.stringify(account));
                   try {
-                  hasPayedForServer = subs + freeServers > account.servers.length;
-                  console.log("hasPayedForServer3: " + subs + " "+freeServers + ">" + account.servers.length);
+                    hasPayedForServer =
+                      subs + freeServers > account.servers.length;
+                    console.log(
+                      "hasPayedForServer3: " +
+                        subs +
+                        " " +
+                        freeServers +
+                        ">" +
+                        account.servers.length
+                    );
                   } catch (err) {
-
-                    hasPayedForServer = false; 
+                    hasPayedForServer = false;
                   }
 
                   if (hasPayedForServer) {
-                    if (!account.servers.includes(id) && !fs.existsSync("servers/" + id)) { 
+                    if (
+                      !account.servers.includes(id) &&
+                      !fs.existsSync("servers/" + id)
+                    ) {
                       account.servers.push(id);
                       writeJSON("accounts/" + email + ".json", account);
                       //to-do: make a way to write the account tsv file
@@ -146,7 +179,9 @@ router.get(`/claim/:id`, function (req, res) {
                       res.status(400).json({ msg: `Server already claimed.` });
                     }
                   } else {
-                    res.status(400).json({ msg: `You have not paid for this server.` });
+                    res
+                      .status(400)
+                      .json({ msg: `You have not paid for this server.` });
                   }
                 }
               );
@@ -154,7 +189,6 @@ router.get(`/claim/:id`, function (req, res) {
           }
         );
       } else {
-    
         if (!account.servers.includes(id)) {
           account.servers.push(id);
           writeJSON("accounts/" + email + ".json", account);
@@ -164,15 +198,13 @@ router.get(`/claim/:id`, function (req, res) {
         } else {
           res.status(400).json({ msg: `Server already claimed.` });
         }
-    
-    }
+      }
     } else {
       res.status(400).json({ msg: `Invalid server ID.` });
     }
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
   }
-
 });
 
 router.get(`/:id`, function (req, res) {
@@ -181,11 +213,10 @@ router.get(`/:id`, function (req, res) {
     let token = req.headers.token;
     let account = readJSON("accounts/" + email + ".json");
 
- 
     if (hasAccess(token, account, req.params.id)) {
       //add cors header
       res.header("Access-Control-Allow-Origin", "*");
-    let id = req.params.id;
+      let id = req.params.id;
       res.status(200).json(f.checkServer(id));
     } else {
       res.status(401).json({ msg: `Invalid credentials.` });
@@ -202,7 +233,7 @@ router.post(`/:id/state/:state`, function (req, res) {
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (hasAccess(token, account, req.params.id)) {
     state = req.params.state;
-  let id = req.params.id;
+    let id = req.params.id;
     let token = req.headers.token;
 
     if (
@@ -246,7 +277,7 @@ router.delete(`/:id/:modtype(plugin|datapack|mod)`, function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (hasAccess(token, account, req.params.id)) {
-  let id = req.params.id;
+    let id = req.params.id;
     pluginId = req.query.pluginId;
     pluginPlatform = req.query.pluginPlatform;
     pluginName = req.query.pluginName;
@@ -261,7 +292,15 @@ router.delete(`/:id/:modtype(plugin|datapack|mod)`, function (req, res) {
 
     //delete platform_id_name.jar
     console.log(
-      id + modtype + pluginPlatform + "_" + pluginId + "_" + pluginName + "." + extension
+      id +
+        modtype +
+        pluginPlatform +
+        "_" +
+        pluginId +
+        "_" +
+        pluginName +
+        "." +
+        extension
     );
     fs.unlinkSync(
       `servers/${id}/${modtype}/${pluginPlatform}_${pluginId}_${pluginName}.${extension}`
@@ -305,7 +344,7 @@ router.get(`/:id/:modtype(plugins|datapacks|mods)`, function (req, res) {
         mods.push({
           platform: file.split("_")[0],
           id: file.split("_")[1] + "/" + file.split("_")[2],
-          name: file.split("_")[3].replace("."+extension, ""),
+          name: file.split("_")[3].replace("." + extension, ""),
           filename: file,
           date: fs.statSync(`${path}/${modtype}/${file}`).mtimeMs,
         });
@@ -317,7 +356,7 @@ router.get(`/:id/:modtype(plugins|datapacks|mods)`, function (req, res) {
         mods.push({
           platform: file.split("_")[0],
           id: file.split("_")[1],
-          name: file.split("_")[2].replace("."+extension, ""),
+          name: file.split("_")[2].replace("." + extension, ""),
           filename: file,
           date: fs.statSync(`${path}/${modtype}/${file}`).mtimeMs,
         });
@@ -368,7 +407,7 @@ router.post(`/:id/version/`, function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (hasAccess(token, account, req.params.id)) {
-  let id = req.params.id;
+    let id = req.params.id;
     version = req.query.version;
 
     server.version = version;
@@ -383,9 +422,7 @@ router.post(`/:id/version/`, function (req, res) {
   }
 });
 
-
 router.post(`/:id/add/:modtype(plugin|datapack|mod)`, function (req, res) {
-
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -394,7 +431,7 @@ router.post(`/:id/add/:modtype(plugin|datapack|mod)`, function (req, res) {
   if (hasAccess(token, account, req.params.id)) {
     //add cors header
     res.header("Access-Control-Allow-Origin", "*");
-  let id = req.params.id;
+    let id = req.params.id;
     let extension = "jar";
     pluginUrl = req.query.pluginUrl;
     pluginId = req.query.id;
@@ -403,7 +440,7 @@ router.post(`/:id/add/:modtype(plugin|datapack|mod)`, function (req, res) {
     //replace other symbols like & with +
     pluginName = pluginName.replace(/&/g, "+");
     pluginName = pluginName.replace(/ /g, "_");
-    
+
     modtype = req.params.modtype;
     if (modtype == "datapack") {
       modtype = "world/datapack";
@@ -418,13 +455,11 @@ router.post(`/:id/add/:modtype(plugin|datapack|mod)`, function (req, res) {
       let platform = "lr";
       if (pluginUrl.startsWith("https://github.com/")) platform = "gh";
       if (pluginUrl.startsWith("https://edge.forgecdn.net/")) platform = "cf";
-        
-        files.download(
-          `servers/${id}/${modtype}s/${platform}_${pluginId}_${pluginName}.${extension}`,
-          pluginUrl
-        );
-     
-      
+
+      files.download(
+        `servers/${id}/${modtype}s/${platform}_${pluginId}_${pluginName}.${extension}`,
+        pluginUrl
+      );
 
       res.status(202).json({ msg: `Success. Plugin added.` });
     }
@@ -453,52 +488,55 @@ router.post(`/:id/modpack`, function (req, res) {
   }
 });
 
-router.post(`/:id/toggleDisable/:modtype(plugin|datapack|mod)`, function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
-  let id = req.params.id;
-  
-    filename = req.query.filename;
-    modtype = req.params.modtype;
-    if (modtype == "datapack") {
-      modtype = "world/datapack";
-    }
-    let text = "disabled";
+router.post(
+  `/:id/toggleDisable/:modtype(plugin|datapack|mod)`,
+  function (req, res) {
+    let email = req.headers.username;
+    let token = req.headers.token;
+    let account = readJSON("accounts/" + email + ".json");
+    let server = readJSON("servers/" + req.params.id + "/server.json");
+    if (hasAccess(token, account, req.params.id)) {
+      let id = req.params.id;
 
-    if (
-      !fs.existsSync(
-        "servers/" + id + "/" + modtype + "s/" + filename + ".disabled"
-      )
-    ) {
-      fs.copyFileSync(
-        "servers/" + id + "/" + modtype + "s/" + filename,
-        "servers/" + id + "/" + modtype + "s/" + filename + ".disabled"
-      );
-      fs.unlinkSync("servers/" + id + "/" + modtype + "s/" + filename);
+      filename = req.query.filename;
+      modtype = req.params.modtype;
+      if (modtype == "datapack") {
+        modtype = "world/datapack";
+      }
+      let text = "disabled";
+
+      if (
+        !fs.existsSync(
+          "servers/" + id + "/" + modtype + "s/" + filename + ".disabled"
+        )
+      ) {
+        fs.copyFileSync(
+          "servers/" + id + "/" + modtype + "s/" + filename,
+          "servers/" + id + "/" + modtype + "s/" + filename + ".disabled"
+        );
+        fs.unlinkSync("servers/" + id + "/" + modtype + "s/" + filename);
+      } else {
+        text = "enabled";
+        fs.copyFileSync(
+          "servers/" + id + "/" + modtype + "s/" + filename + ".disabled",
+          "servers/" + id + "/" + modtype + "s/" + filename
+        );
+        fs.unlinkSync(
+          "servers/" + id + "/" + modtype + "s/" + filename + ".disabled"
+        );
+      }
+      res.status(202).json({ msg: `Success. Plugin ${text}.` });
     } else {
-      text = "enabled";
-      fs.copyFileSync(
-        "servers/" + id + "/" + modtype + "s/" + filename + ".disabled",
-        "servers/" + id + "/" + modtype + "s/" + filename
-      );
-      fs.unlinkSync(
-        "servers/" + id + "/" + modtype + "s/" + filename + ".disabled"
-      );
+      res.status(401).json({ msg: `Invalid credentials.` });
     }
-    res.status(202).json({ msg: `Success. Plugin ${text}.` });
-  } else {
-    res.status(401).json({ msg: `Invalid credentials.` });
   }
-});
+);
 
 router.post(`/new/:id`, function (req, res) {
   try {
     let email = req.headers.username;
     let token = req.headers.token;
-  let id = req.params.id;
+    let id = req.params.id;
     if (!enableAuth) email = "noemail";
     let account = readJSON("accounts/" + email + ".json");
     console.log(
@@ -519,7 +557,10 @@ router.post(`/new/:id`, function (req, res) {
           let fullServers = 0;
           for (i in account.servers) {
             if (account.servers[i] != undefined) {
-              if (fs.existsSync("servers/" + account.servers[i]+"/server.json")) fullServers++;
+              if (
+                fs.existsSync("servers/" + account.servers[i] + "/server.json")
+              )
+                fullServers++;
             }
           }
           //add cors header
@@ -635,7 +676,14 @@ router.post(`/new/:id`, function (req, res) {
                           freeServers = parseInt(account.freeServers);
                         }
                         let canCreateServer = subs + freeServers > fullServers;
-                        console.log("canCreateServer: " + subs + " "+freeServers + ">" + fullServers);
+                        console.log(
+                          "canCreateServer: " +
+                            subs +
+                            " " +
+                            freeServers +
+                            ">" +
+                            fullServers
+                        );
                         if (canCreateServer) {
                           if (
                             em !== "noemail" &&
@@ -735,7 +783,7 @@ router.post(`/:id/setInfo`, function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (hasAccess(token, account, req.params.id)) {
-  let id = req.params.id;
+    let id = req.params.id;
     iconUrl = req.body.icon;
     desc = req.body.desc;
 
@@ -832,7 +880,7 @@ router.get(`/:id/getInfo`, function (req, res) {
     let desc = "";
     let secret;
     let proxiesEnabled;
-  let id = req.params.id;
+    let id = req.params.id;
 
     if (f.checkServer(id).software == "velocity") {
       var text = fs.readFileSync(`servers/${id}/velocity.toml`).toString();
@@ -851,25 +899,25 @@ router.get(`/:id/getInfo`, function (req, res) {
         return line.includes("motd");
       });
       desc = textByLine[index].split("=")[1];
-      try{
-      if (f.checkServer(id).software == "paper") {
-        secret = fs.readFileSync(
-          `servers/${id}/config/paper-global.yml`,
-          "utf8"
-        );
+      try {
+        if (f.checkServer(id).software == "paper") {
+          secret = fs.readFileSync(
+            `servers/${id}/config/paper-global.yml`,
+            "utf8"
+          );
 
-        let secretLines = secret.split("\n");
+          let secretLines = secret.split("\n");
 
-        let index2 = secretLines.findIndex((line) => {
-          return line.includes("secret:");
-        });
-        secret = secretLines[index2].split(":")[1].trim();
-        //cut quotes off of secret
-        secret = secret.substring(1, secret.length - 1);
+          let index2 = secretLines.findIndex((line) => {
+            return line.includes("secret:");
+          });
+          secret = secretLines[index2].split(":")[1].trim();
+          //cut quotes off of secret
+          secret = secret.substring(1, secret.length - 1);
+        }
+      } catch (err) {
+        console.log(err);
       }
-    } catch (err) {
-      console.log(err);
-    }
 
       let onlineMode = textByLine[
         textByLine.findIndex((line) => {
@@ -892,9 +940,8 @@ router.get(`/:id/getInfo`, function (req, res) {
 
     let automaticStartup = false;
     if (server.allowedAccounts == undefined) {
-    
       server.allowedAccounts = "";
-    } 
+    }
     //if allowedAccounts begins with a , remove it
     if (server.allowedAccounts.startsWith(",")) {
       server.allowedAccounts = server.allowedAccounts.substring(1);
@@ -908,8 +955,8 @@ router.get(`/:id/getInfo`, function (req, res) {
       if (allowedAccounts1.includes(account[0])) {
         allowedAccounts.push(account[0] + ":" + account[1].split(":")[1]);
       }
-    } 
-   
+    }
+
     res.status(200).json({
       msg: `Success: Got server info`,
       iconUrl: iconUrl,
@@ -917,7 +964,7 @@ router.get(`/:id/getInfo`, function (req, res) {
       secret: secret,
       proxiesEnabled: proxiesEnabled,
       automaticStartup: automaticStartup,
-      allowedAccounts: allowedAccounts
+      allowedAccounts: allowedAccounts,
     });
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
@@ -989,7 +1036,6 @@ router.delete(`/:id`, function (req, res) {
 
                 console.log("making sure server is deleted...");
                 files.removeDirectoryRecursive(`servers/${req.params.id}`);
-               
               }, 5000);
             }
           );
@@ -1014,7 +1060,7 @@ router.get("/:id/world", function (req, res) {
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (hasAccess(token, account, req.params.id)) {
     //zip /servers/id/world and send it to the client
-  let id = req.params.id;
+    let id = req.params.id;
     let path = "servers/" + id;
     if (server.software == "quilt") {
       path += "/server";
@@ -1033,27 +1079,27 @@ router.get("/:id/world", function (req, res) {
     }
 
     if (server.software == "paper") {
-       //temporarily copy nether and the end to the world folder as vanilla format
-    if (fs.existsSync(path + "/world_nether")) {
-      if (!fs.existsSync(path + "/world/DIM-1")) {
-        fs.mkdirSync(path + "/world/DIM-1");
-      }
-      exec(`cp -r ${path}/world_nether/* ${path}/world/DIM-1`, (err) => {
-        if (err) {
-          console.log(err);
+      //temporarily copy nether and the end to the world folder as vanilla format
+      if (fs.existsSync(path + "/world_nether")) {
+        if (!fs.existsSync(path + "/world/DIM-1")) {
+          fs.mkdirSync(path + "/world/DIM-1");
         }
-      });
-    }
-    if (fs.existsSync(path + "/world_the_end")) {
-      if (!fs.existsSync(path + "/world/DIM1")) {
-        fs.mkdirSync(path + "/world/DIM1");
+        exec(`cp -r ${path}/world_nether/* ${path}/world/DIM-1`, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
       }
-      exec(`cp -r ${path}/world_the_end/* ${path}/world/DIM1`, (err) => {
-        if (err) {
-          console.log(err);
+      if (fs.existsSync(path + "/world_the_end")) {
+        if (!fs.existsSync(path + "/world/DIM1")) {
+          fs.mkdirSync(path + "/world/DIM1");
         }
-      });
-    }
+        exec(`cp -r ${path}/world_the_end/* ${path}/world/DIM1`, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
     }
 
     try {
@@ -1070,8 +1116,6 @@ router.get("/:id/world", function (req, res) {
             files.removeDirectoryRecursiveSync(path + "/world/DIM-1");
             files.removeDirectoryRecursiveSync(path + "/world/DIM1");
           }
-
-          
         });
       });
     } catch {
@@ -1086,7 +1130,7 @@ router.post("/:id/world", upload.single("file"), function (req, res) {
   console.log("upload world 0");
   //this disables timeouts if virus scanning takes too long
   req.setTimeout(0);
-let id = req.params.id;
+  let id = req.params.id;
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -1272,7 +1316,7 @@ let id = req.params.id;
                     }
                   );
                   exec(
-                    `mv servers/${id}/world/DIM1/ servers/${id}/world_the_end/DIM1/`, 
+                    `mv servers/${id}/world/DIM1/ servers/${id}/world_the_end/DIM1/`,
                     (err) => {
                       if (err) {
                         console.log(err);
@@ -1611,11 +1655,15 @@ router.get("/:id/file/:path", function (req, res) {
           //get the file's previous versions
           if (
             fs.existsSync(
-              `servers/${req.params.id}/.fileVersions/${sanitizePath(req.params.path)}`
+              `servers/${req.params.id}/.fileVersions/${sanitizePath(
+                req.params.path
+              )}`
             )
           ) {
             versionsArray = fs.readdirSync(
-              `servers/${req.params.id}/.fileVersions/${sanitizePath(req.params.path)}`
+              `servers/${req.params.id}/.fileVersions/${sanitizePath(
+                req.params.path
+              )}`
             );
           }
           res.status(200).json({
@@ -1652,23 +1700,23 @@ router.get("/:id/download", function (req, res) {
             `attachment; filename=${req.params.id}.zip`
           );
 
-          res.status(200).download(
-            `servers/${req.params.id}/${req.params.id}.zip`,
-            `${req.params.id}.zip`,
-            () => {
-              //delete the zip file
-              fs.unlinkSync(`servers/${req.params.id}/${req.params.id}.zip`);
-            }
-          );
+          res
+            .status(200)
+            .download(
+              `servers/${req.params.id}/${req.params.id}.zip`,
+              `${req.params.id}.zip`,
+              () => {
+                //delete the zip file
+                fs.unlinkSync(`servers/${req.params.id}/${req.params.id}.zip`);
+              }
+            );
         }
       );
     } else {
       res.status(400).json({ msg: "Invalid request." });
     }
   }
-}); 
-
-
+});
 
 router.get("/:id/file/download/:path", function (req, res) {
   let email = req.headers.username;
@@ -1695,15 +1743,25 @@ router.get("/:id/file/download/:path", function (req, res) {
               "Content-Disposition",
               `attachment; filename=${sanitizePath(req.params.path)}.zip`
             );
-            console.log(`downloading folder servers/${req.params.id}/${sanitizePath(req.params.path)}.zip`);
-            res.status(200).download(
-              `servers/${req.params.id}/${sanitizePath(req.params.path)}.zip`,
-              `${sanitizePath(req.params.path)}.zip`,
-              () => {
-                //delete the zip file
-                fs.unlinkSync(`servers/${req.params.id}/${sanitizePath(req.params.path)}.zip`);
-              }
+            console.log(
+              `downloading folder servers/${req.params.id}/${sanitizePath(
+                req.params.path
+              )}.zip`
             );
+            res
+              .status(200)
+              .download(
+                `servers/${req.params.id}/${sanitizePath(req.params.path)}.zip`,
+                `${sanitizePath(req.params.path)}.zip`,
+                () => {
+                  //delete the zip file
+                  fs.unlinkSync(
+                    `servers/${req.params.id}/${sanitizePath(
+                      req.params.path
+                    )}.zip`
+                  );
+                }
+              );
           }
         );
       } else {
@@ -1740,7 +1798,6 @@ router.post("/:id/file/:path", function (req, res) {
     if (
       req.body.content !== undefined &&
       fs.existsSync(`servers/${req.params.id}/${path}`) &&
-      
       filename != "server.json" &&
       filename != "modrinth.index.json" &&
       filename != "curseforge.index.json" &&
@@ -1748,11 +1805,15 @@ router.post("/:id/file/:path", function (req, res) {
     ) {
       if (
         !fs.existsSync(
-          `servers/${req.params.id}/.fileVersions/${sanitizePath(req.params.path)}`
+          `servers/${req.params.id}/.fileVersions/${sanitizePath(
+            req.params.path
+          )}`
         )
       ) {
         fs.mkdirSync(
-          `servers/${req.params.id}/.fileVersions/${sanitizePath(req.params.path)}`
+          `servers/${req.params.id}/.fileVersions/${sanitizePath(
+            req.params.path
+          )}`
         );
       }
       //write only the difference between the old file and the new file
@@ -1773,7 +1834,9 @@ router.post("/:id/file/:path", function (req, res) {
       let filename = fs.statSync(`servers/${req.params.id}/${path}`).mtimeMs;
       console.log(filename);
       fs.writeFileSync(
-        `servers/${req.params.id}/.fileVersions/${sanitizePath(req.params.path)}/${filename}`,
+        `servers/${req.params.id}/.fileVersions/${sanitizePath(
+          req.params.path
+        )}/${filename}`,
         diffString
       );
 
@@ -1799,7 +1862,7 @@ router.post(
       hasAccess(token, account, req.params.id) &&
       fs.existsSync(`servers/${req.params.id}/`)
     ) {
-      let id = req.params.id;	
+      let id = req.params.id;
       let path = sanitizePath(req.params.path);
       let filename = req.query.filename;
       if (sanitizePath(req.params.path).includes("*")) {
@@ -1813,7 +1876,6 @@ router.post(
           {},
           (err, stdout, stderr) => {
             if (stdout.indexOf("Infected files: 0") != -1) {
-
               loadFile();
             } else {
               res.send("Virus Detected.");
@@ -1822,7 +1884,6 @@ router.post(
           }
         );
       } else {
-
         loadFile();
       }
 
@@ -1833,7 +1894,6 @@ router.post(
         );
         fs.rmSync(req.file.path);
         res.status(200).send("Upload Complete.");
-
       }
     } else {
       res.status(401).json({ msg: "Invalid credentials." });
@@ -1841,9 +1901,8 @@ router.post(
   }
 );
 
-router.post(
-  "/:id/extractfile/:path", function (req, res) { 
-  let email = req.headers.username; 
+router.post("/:id/extractfile/:path", function (req, res) {
+  let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
@@ -1858,31 +1917,38 @@ router.post(
     let filename = path.split("/")[path.split("/").length - 1];
     if (
       fs.existsSync(`servers/${req.params.id}/${path}`) &&
-      filename.includes(".zip"))
-    {
+      filename.includes(".zip")
+    ) {
       //unzip the file and put it in /servers/id/{filename}
       const exec = require("child_process").exec;
-      console.log(`unzip -o "servers/` + req.params.id + `/${path}" -d "servers/` + req.params.id + `/${filename.split(".zip")[0]}"`);
+      console.log(
+        `unzip -o "servers/` +
+          req.params.id +
+          `/${path}" -d "servers/` +
+          req.params.id +
+          `/${filename.split(".zip")[0]}"`
+      );
       exec(
-        `unzip -o servers/` + req.params.id + `/${path} -d servers/` + req.params.id + `/${path.split(".zip")[0]}`,
+        `unzip -o servers/` +
+          req.params.id +
+          `/${path} -d servers/` +
+          req.params.id +
+          `/${path.split(".zip")[0]}`,
         (err, stdout, stderr) => {
           if (err) {
             console.log(err);
           } else {
             res.status(200).json({ msg: "Done" });
           }
-        } 
+        }
       );
-        
     } else {
       res.status(400).json({ msg: "Invalid request." });
     }
   } else {
     res.status(401).json({ msg: "Invalid credentials." });
   }
-}
-);  
-
+});
 
 router.delete("/:id/file/:path", function (req, res) {
   let email = req.headers.username;
@@ -1994,7 +2060,7 @@ router.get("/:id/storageInfo", function (req, res) {
     } else if (config.max == server.productID) {
       serverStorageLimit = 25;
     }
-   limit = serverStorageLimit * 1024 * 1024 * 1024;
+    limit = serverStorageLimit * 1024 * 1024 * 1024;
 
     res.status(200).json({
       used: used,
@@ -2034,8 +2100,14 @@ router.get("/:id/getFtpToken", function (req, res) {
   if (
     hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}/`)
-  ) {if (account.accountId.includes("acc_")) account.accountId = accountId.replace("acc_", "");
-    res.status(200).json({ token: ftp.getTempToken(account.accountId.slice(0,6)+"."+ req.params.id) });
+  ) {
+    if (account.accountId.includes("acc_"))
+      account.accountId = accountId.replace("acc_", "");
+    res.status(200).json({
+      token: ftp.getTempToken(
+        account.accountId.slice(0, 6) + "." + req.params.id
+      ),
+    });
   } else {
     res.status(401).json({ msg: "Invalid credentials." });
   }
@@ -2095,10 +2167,10 @@ router.post("/:id/claimSubdomain", function (req, res) {
             console.log(err);
             res.status(500).json({ msg: "Error claiming subdomain. (1)" });
           } else {
-          exec(
-            `curl https://api.cloudflare.com/client/v4/zones/${
-              config.cloudflareZone
-            }/dns_records \
+            exec(
+              `curl https://api.cloudflare.com/client/v4/zones/${
+                config.cloudflareZone
+              }/dns_records \
         -H 'Content-Type: application/json' \
         -H "X-Auth-Email: ${config.cloudflareEmail}" \
         -H "X-Auth-Key: ${config.cloudflareKey}" \
@@ -2113,29 +2185,34 @@ router.post("/:id/claimSubdomain", function (req, res) {
           }
     
         }'`,
-            (err, stdout, stderr) => {
-          if (err) {
-            console.log(err);
-            res.status(500).json({ msg: "Error claiming subdomain. (1)" });
-          } else {
-            let res2 = JSON.parse(stdout);
-            console.log(res2);
-            if (res2.success == false) {
-              if (res2.errors[0].code == 81058) {
-                res.status(400).json({ msg: "Subdomain already taken." });
-              } else {
-                res.status(500).json({ msg: "Error claiming subdomain. (2)" });
+              (err, stdout, stderr) => {
+                if (err) {
+                  console.log(err);
+                  res
+                    .status(500)
+                    .json({ msg: "Error claiming subdomain. (1)" });
+                } else {
+                  let res2 = JSON.parse(stdout);
+                  console.log(res2);
+                  if (res2.success == false) {
+                    if (res2.errors[0].code == 81058) {
+                      res.status(400).json({ msg: "Subdomain already taken." });
+                    } else {
+                      res
+                        .status(500)
+                        .json({ msg: "Error claiming subdomain. (2)" });
+                    }
+                  } else {
+                    server.subdomain = subdomain;
+                    writeJSON(`servers/${req.params.id}/server.json`, server);
+                    res.status(200).json({ msg: "Done" });
+                  }
+                }
               }
-            } else {
-              server.subdomain = subdomain;
-              writeJSON(`servers/${req.params.id}/server.json`, server);
-              res.status(200).json({ msg: "Done" });
-            }
+            );
           }
         }
       );
-    }
-    });
     }
   } else {
     res.status(401).json({ msg: "Invalid credentials." });
@@ -2200,8 +2277,7 @@ router.post("/:id/allowAccount", function (req, res) {
     if (server.allowedAccounts != undefined) {
       array = server.allowedAccounts.split(",");
     }
-  
-    
+
     if (!array.includes(req.query.accountId) && array.length < 5) {
       array.push(req.query.accountId);
       server.allowedAccounts = array.join(",");
@@ -2216,22 +2292,37 @@ router.post("/:id/allowAccount", function (req, res) {
           res.status(200).json({ msg: "Done" });
         }
       });
-      
     }
-
-
   } else {
     res.status(401).json({ msg: "Invalid credentials." });
   }
 });
 
+router.get("/:id/backups", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON(`servers/${req.params.id}/server.json`);
+  if (hasAccess(token, account, req.params.id)) {
+    if (fs.existsSync(`backups/${req.params.id}/`)) {
+      try {
+        res.status(200).json((backups = getBackupSlots(req.params.id - 1)));
+      } catch (e) {
+        console.log(e);
+        res.status(500).json({ msg: "Error getting backups." });
+      }
+    } else {
+      res.status(401).json({ msg: "Invalid credentials." });
+    }
+  }
+});
 
 function hasAccess(token, account, id) {
   let server = readJSON(`servers/${id}/server.json`);
   if (!enableAuth) return true;
   let accountOwner = token === account.token;
   let serverOwner = server.accountId == account.accountId;
-  let allowedAccount  = false;
+  let allowedAccount = false;
   if (server.allowedAccounts !== undefined) {
     allowedAccount = server.allowedAccounts.includes(account.accountId);
   }
@@ -2241,7 +2332,7 @@ function hasAccess(token, account, id) {
 
 function sanitizePath(userInput) {
   // Step 1: Block null bytes (common in attacks)
-  if (userInput.includes('\0')) {
+  if (userInput.includes("\0")) {
     console.log("null byte blocked: " + userInput);
     return "invalid";
   }
@@ -2251,11 +2342,11 @@ function sanitizePath(userInput) {
 
   // Step 3: Split into parts and filter out traversal attempts
   const parts = normalized.split(path.sep); // Handles OS-specific separators
-  const filteredParts = parts.filter(part => {
+  const filteredParts = parts.filter((part) => {
     // Reject empty parts (e.g., from leading/trailing slashes)
-    if (part === '') return false;
+    if (part === "") return false;
     // Block parent directory traversal
-    if (part === '..') return false;
+    if (part === "..") return false;
     return true;
   });
 
@@ -2270,6 +2361,5 @@ function sanitizePath(userInput) {
 
   return sanitized;
 }
-
 
 module.exports = router;
