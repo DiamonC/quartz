@@ -139,8 +139,8 @@ function getBackupSlots(serverId) {
     const timestampStr = filename.split(".")[0];
     const timestamp = Number(timestampStr);
     backupSlots.push({
-      id: filename,
-      timestamp: new Date(timestamp),
+      id: serverId,
+      timestamp: timestamp,
       size: fs.statSync(`./backups/${serverId}/${filename}`).size,
     });
   }
