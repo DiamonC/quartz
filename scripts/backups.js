@@ -71,31 +71,34 @@ function cycle() {
   setTimeout(() => {
     console.log("Running backup cycle...");
     for (let i = 0; i < servers.length; i++) {
-      if (!fs.existsSync(`./backups/${servers[i]}`)) {
-        fs.mkdirSync(`./backups/${servers[i]}`);
-      }
+      //if we dont space out backups the website will be unreachable for a few minutes.
+setTimeout(() => {
+  if (!fs.existsSync(`./backups/${servers[i]}`)) {
+    fs.mkdirSync(`./backups/${servers[i]}`);
+  }
 
-      let backupFolder = fs.readdirSync(`./backups/${servers[i]}`);
-      if (backupFolder.length >= backupSlots) {
-        let amountToDelete = backupFolder.length - backupSlots;
-        for (let j = 0; j <= amountToDelete; j++) {
-          fs.rmSync(`./backups/${servers[i]}/${backupFolder[j]}`, {
-            recursive: true,
-          });
-        }
+  let backupFolder = fs.readdirSync(`./backups/${servers[i]}`);
+  if (backupFolder.length >= backupSlots) {
+    let amountToDelete = backupFolder.length - backupSlots;
+    for (let j = 0; j <= amountToDelete; j++) {
+      fs.rmSync(`./backups/${servers[i]}/${backupFolder[j]}`, {
+        recursive: true,
+      });
+    }
+  }
+  //backup by zipping the world folder
+  const timestamp = Date.now();
+  exec(
+    `zip -r ./backups/${servers[i]}/${timestamp}.zip ./servers/${servers[i]}/world`,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error zipping world folder: ${stderr}`);
+        return;
       }
-      //backup by zipping the world folder
-      const timestamp = Date.now();
-      exec(
-        `zip -r ./backups/${servers[i]}/${timestamp}.zip ./servers/${servers[i]}/world`,
-        (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Error zipping world folder: ${stderr}`);
-            return;
-          }
-          console.log(`Successfully backed up server ${servers[i]}`);
-        }
-      );
+      console.log(`Successfully backed up server ${servers[i]}`);
+    }
+  );
+}, 1000 * i);
     }
   }, 5000);
 }
