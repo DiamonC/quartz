@@ -246,7 +246,7 @@ function refreshTempToken() {
     //if its more than a week old, refreshes it
     if (Date.now() - datajson.tempToken.split(":")[0] > 1000 * 60 * 60 * 24 * 7)
       datajson.tempToken =
-        Date.now() + ":" + crypto.randomBytes(16).toString("hex");
+        Date.now() + ":" + crypto.randomBytes(5).toString("hex");
     writeJSON("assets/data.json", datajson);
   }
 }
