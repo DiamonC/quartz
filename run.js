@@ -571,7 +571,7 @@ process.stdin.on("data", (data) => {
     case "getDashboardToken":
       refreshTempToken();
       const datajson2 = readJSON("./assets/data.json");
-      console.log(datajson2.tempToken.split(":")[1]);
+      console.log(datajson2.tempToken);
       break;
     case "broadcast":
       userInput = true;
