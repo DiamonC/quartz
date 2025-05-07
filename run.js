@@ -196,10 +196,10 @@ if (!fs.existsSync("assets/jars")) {
   fs.mkdirSync("assets/jars");
   fs.mkdirSync("assets/jars/downloads");
   fs.mkdirSync("assets/uploads");
-
+ 
   fs.writeFileSync(
     "assets/data.json",
-    `{"lastUpdate":${Date.now()},"numServers":0}`
+    `{"lastUpdate":${Date.now()},"numServers":0,"tempToken":"${Date.now()}:${crypto.randomBytes(3).toString("hex")}","serverStates": []}`
   );
   refreshTempToken();
   downloadJars("full");
@@ -234,10 +234,27 @@ setInterval(() => {
 
 function refreshTempToken() {
   const datajson = readJSON("./assets/data.json");
-      datajson.tempToken =
-       crypto.randomBytes(5).toString("hex");
+
+  if (datajson.tempToken == undefined) {
+    datajson.tempToken =
+      Date.now() + ":" + crypto.randomBytes(3).toString("hex");
+  }
+  if (datajson.tempToken.split(":")[1].split("").length != 6) {
+    datajson.tempToken =
+      Date.now() + ":" + crypto.randomBytes(3).toString("hex");
+  }
+  if (datajson.tempToken.split("").length < 10) {
+    datajson.tempToken =
+      Date.now() + ":" + crypto.randomBytes(3).toString("hex");
     writeJSON("assets/data.json", datajson);
-  
+  } else {
+    //if its more than 90 days old, refreshe it
+    if (Date.now() - datajson.tempToken.split(":")[0] > 1000 * 60 * 60 * 24 * 90) {
+      datajson.tempToken =
+        Date.now() + ":" + crypto.randomBytes(3).toString("hex");
+    writeJSON("assets/data.json", datajson);
+  }
+}
 }
 
 function downloadJars(type) {
@@ -571,7 +588,7 @@ process.stdin.on("data", (data) => {
     case "getDashboardToken":
       refreshTempToken();
       const datajson2 = readJSON("./assets/data.json");
-      console.log(datajson2.tempToken);
+      console.log(datajson2.tempToken.split(":")[1]);
       break;
     case "broadcast":
       userInput = true;
@@ -786,13 +803,7 @@ const adminPort = process.env.ADMIN_PORT || 4001;
 
 
 // Admin-specific middleware stack
-adminApp.use(express.json());
-adminApp.use(cors({
-  origin: config.adminAllowedOrigins || ['http://localhost:3000'],
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Authorization', 'Content-Type']
-}));
-
+adminApp.use(express.json(), cors());
 adminApp.use((req, res, next) => {
   console.log(`Admin access: ${req.method} ${req.path}`);
   next();
