@@ -234,21 +234,10 @@ setInterval(() => {
 
 function refreshTempToken() {
   const datajson = readJSON("./assets/data.json");
-  if (datajson.tempToken == undefined) {
-    datajson.tempToken =
-      Date.now() + ":" + crypto.randomBytes(16).toString("hex");
-  }
-  if (datajson.tempToken.split("").length < 10) {
-    datajson.tempToken =
-      Date.now() + ":" + crypto.randomBytes(16).toString("hex");
-    writeJSON("assets/data.json", datajson);
-  } else {
-    //if its more than a week old, refreshes it
-    if (Date.now() - datajson.tempToken.split(":")[0] > 1000 * 60 * 60 * 24 * 7)
       datajson.tempToken =
-        Date.now() + ":" + crypto.randomBytes(5).toString("hex");
+       crypto.randomBytes(5).toString("hex");
     writeJSON("assets/data.json", datajson);
-  }
+  
 }
 
 function downloadJars(type) {
