@@ -783,7 +783,6 @@ const security = (req, res, next) => {
 app.use(limiter, express.json(), cors());
 
 app.use("/server", require("./routes/server"));
-app.use("/dashboard", require("./routes/dashboard"));
 app.use("/checkout", require("./routes/checkout"));
 app.use("/info", require("./routes/info"));
 app.use("/terminal", require("./routes/terminal"));
@@ -822,7 +821,7 @@ adminApp.listen(adminPort, () => {
   console.log(`Admin API running on port ${adminPort}`);
 });
 
-adminApp.use("/admin", require("./routes/admin"));
+adminApp.use("/", require("./routes/dashboard"));
 
 // port
 const port = process.env.PORT || 4000;
