@@ -2108,7 +2108,7 @@ router.get("/:id/getFtpToken", function (req, res) {
     fs.existsSync(`servers/${req.params.id}/`)
   ) {
     if (account.accountId.includes("acc_"))
-      account.accountId = accountId.replace("acc_", "");
+      account.accountId = account.accountId.replace("acc_", "");
     res.status(200).json({
       token: ftp.getTempToken(
         account.accountId.slice(0, 6) + "." + req.params.id
