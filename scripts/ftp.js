@@ -62,7 +62,7 @@ function startFtpServer() {
 
 
     //
-    console.log(`docker run -d --name sftp_server -p ${port}:22 -v sftp_ssh:/etc/ssh ${mountArray.join(" ")}atmoz/sftp ${usersArray.join(" ")}`);
+
     const { exec} = require('child_process');
     //stop any containers with the name sftp_server
     exec('docker stop sftp_server', (error, stdout, stderr) => {
@@ -90,6 +90,7 @@ function startFtpServer() {
              
                 return;
             }
+            console.log(`docker run -d --name sftp_server -p ${port}:22 -v sftp_ssh:/etc/ssh ${mountArray.join(" ")}atmoz/sftp ${usersArray.join(" ")}`);
             console.log(`FTP server started on port ${port}`);
         });
     }, 2000);
