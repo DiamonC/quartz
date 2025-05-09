@@ -68,6 +68,27 @@ Router.get("/customers", async (req, res) => {
   }
 });
 
+Router.get("/subscriptions/:email", async (req, res) => {
+  const datajson = utils.readJSON("assets/data.json");
+  if (req.query.tempToken != datajson.tempToken.split(":")[1]) {
+    res.status(401).send({ error: "Unauthorized" });
+  } else {
+    try {
+      const customer = await s.getSubscriptions(req.params.email);
+      console.log("customer", customer);
+      
+      if (!customer) {
+        return res.status(404).send({ error: "Customer not found" });
+      }
+      
+      res.status(200).send(customer);
+    } catch (err) {
+      console.error("Error fetching customer:", err);
+      res.status(500).send({ error: "Internal server error" });
+    }
+  }
+});
+
 const { exec } = require("child_process");
 
 function getThreadUsage() {

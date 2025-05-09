@@ -170,4 +170,25 @@ async function getCustomers() {
   }
 }
 
-module.exports = { getCustomerID, checkSubscription, getCreditId, getCustomers };
+async function getSubscriptions(email) {
+  const cid = await getCustomerID(email);
+
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: cid,
+      status: "all",
+    });
+
+    if (subscriptions.data.length > 0) {
+      return subscriptions.data[0];
+    } else {
+      return null;
+    }
+  }
+  catch (err) {
+    console.log("Error retrieving customer subscription:", err);
+    return null;
+  }
+}
+
+module.exports = { getCustomerID, checkSubscription, getCreditId, getCustomers, getSubscriptions};
