@@ -714,6 +714,12 @@ router.post(`/new/:id`, function (req, res) {
                           console.log(
                             "debug: " + email + req.headers.username + em
                           );
+                          //restart the ftp container
+                          try {
+                            ftp.startFtpServer();
+                          } catch (e) {
+                            console.log("error restarting ftp container " + e);
+                          }
                           f.run(
                             id,
                             req.body.software,
