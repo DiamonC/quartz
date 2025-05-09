@@ -8,51 +8,61 @@ var server;
 let users = [];
 let accountsFolder = fs.readdirSync('./accounts');
 
-for (let i = 0; i < accountsFolder.length; i++) {
-    let account = accountsFolder[i];
-    if (account.endsWith('.json')) {
-        let data = readJSON(`./accounts/${account}`);
-        if (data.servers != undefined && data.servers.length > 0) {
-         for (let j = 0; j < data.servers.length; j++) {
-            let server = data.servers[j];
-            let tempToken = crypto.randomBytes(6).toString("hex");
-            if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
-
-            users.push(`${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`); 
-         }
-        }
-    }
-}
-
-// User authentication array (username:password:directory)
-
-
-// Convert users array into an object for easier lookup
-var userMap = {};
-users.forEach(entry => {
-  let [username, password, directory] = entry.split(':');
-  userMap[username] = { password, directory };
-});
 let port = 10000 + parseInt(config.idOffset) + 99;
 
-let mountArray = [];
-let usersArray = [];
-try {
-    for (let i = 0; i < users.length; i++) {
-        //if there isnt a duplicate mountpoint
-        if (!mountArray.includes(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/server" `)) {
-        mountArray.push(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/server" `);
-    }
-    if (!usersArray.includes(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `)) {
-        usersArray.push(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `);
-    }
-    }
-} catch (e) {
-    console.log(e);
-}
 
-console.log(`docker run -d --name sftp_server -p ${port}:22 -v sftp_ssh:/etc/ssh ${mountArray.join(" ")}atmoz/sftp ${usersArray.join(" ")}`);
+
 function startFtpServer() {
+    //
+
+    for (let i = 0; i < accountsFolder.length; i++) {
+        let account = accountsFolder[i];
+        if (account.endsWith('.json')) {
+            let data = readJSON(`./accounts/${account}`);
+            if (data.servers != undefined && data.servers.length > 0) {
+             for (let j = 0; j < data.servers.length; j++) {
+                let server = data.servers[j];
+                let tempToken = crypto.randomBytes(6).toString("hex");
+                if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
+    
+                users.push(`${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`); 
+             }
+            }
+        }
+    }
+    
+    // User authentication array (username:password:directory)
+    
+    
+    // Convert users array into an object for easier lookup
+    var userMap = {};
+    users.forEach(entry => {
+      let [username, password, directory] = entry.split(':');
+      userMap[username] = { password, directory };
+    });
+    
+    
+    let mountArray = [];
+    let usersArray = [];
+    try {
+        for (let i = 0; i < users.length; i++) {
+            //if there isnt a duplicate mountpoint
+            if (!mountArray.includes(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/server" `)) {
+            mountArray.push(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/server" `);
+        }
+        if (!usersArray.includes(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `)) {
+            usersArray.push(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `);
+        }
+        }
+    } catch (e) {
+        console.log(e);
+    }
+    
+
+
+
+    //
+    console.log(`docker run -d --name sftp_server -p ${port}:22 -v sftp_ssh:/etc/ssh ${mountArray.join(" ")}atmoz/sftp ${usersArray.join(" ")}`);
     const { exec} = require('child_process');
     //stop any containers with the name sftp_server
     exec('docker stop sftp_server', (error, stdout, stderr) => {

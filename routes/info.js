@@ -409,7 +409,7 @@ captureSnapshot();
 setInterval(captureSnapshot, 60000);
 
 // Route to get thread and memory snapshot
-Router.get("/snapshot", (req, res) => {
+router.get("/snapshot", (req, res) => {
     res.json(snapshotHistory);
 });
 
