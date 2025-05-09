@@ -293,4 +293,124 @@ router.get(`/accounts`, function (req, res) {
   }
 });
 
+const { exec } = require("child_process");
+
+function getThreadUsage() {
+    return new Promise((resolve, reject) => {
+        exec("grep 'cpu[0-9]' /proc/stat", (err, firstSample) => {
+            if (err) return reject(err);
+
+            setTimeout(() => {
+                exec("grep 'cpu[0-9]' /proc/stat", (err, secondSample) => {
+                    if (err) return reject(err);
+
+                    const threads = [];
+                    const firstLines = firstSample.trim().split("\n");
+                    const secondLines = secondSample.trim().split("\n");
+
+                    for (let i = 0; i < firstLines.length; i++) {
+                        const firstParts = firstLines[i].split(/\s+/);
+                        const secondParts = secondLines[i].split(/\s+/);
+
+                        const id = firstParts[0]; // "cpu0", "cpu1", ...
+
+                        const firstTotal = firstParts.slice(1, 8).reduce((sum, val) => sum + parseInt(val), 0);
+                        const firstIdle = parseInt(firstParts[4]);
+
+                        const secondTotal = secondParts.slice(1, 8).reduce((sum, val) => sum + parseInt(val), 0);
+                        const secondIdle = parseInt(secondParts[4]);
+
+                        const totalDiff = secondTotal - firstTotal;
+                        const idleDiff = secondIdle - firstIdle;
+                        const usage = totalDiff > 0 ? ((totalDiff - idleDiff) / totalDiff) * 100 : 0;
+
+                        threads.push({ id, cpuUsage: usage.toFixed(2) });
+                    }
+
+                    resolve(threads);
+                });
+            }, 500); // 500ms delay between samples
+        });
+    });
+}
+
+
+
+// Function to get memory usage
+function getMemoryUsage() {
+  return new Promise((resolve, reject) => {
+      exec("free -m", (err, stdout) => {
+          if (err) return reject(err);
+          const lines = stdout.trim().split("\n");
+          const memValues = lines[1].split(/\s+/);
+          const memory = {
+              used: parseInt(memValues[2]),
+              buffers: parseInt(memValues[5]),
+              cached: parseInt(memValues[6]),
+              total: parseInt(memValues[1])
+          };
+          resolve(memory);
+      });
+  });
+}
+
+// Function to get CPU usage
+function getCpuUsage() {  
+  return new Promise((resolve, reject) => {
+      exec(`top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8 "%"}'`, (err, stdout) => {
+          if (err) return reject(err);
+          const cpu = parseFloat(stdout);
+          resolve(cpu); 
+      });
+  });
+}
+
+function getCpuName() {
+  return new Promise((resolve, reject) => {
+      exec(`cat /proc/cpuinfo | grep "model name" | uniq | sed 's/.*: //'`, (err, stdout) => {
+          if (err) return reject(err);
+          const cpu = stdout.trim();
+          resolve(cpu); 
+      }
+      );
+  });
+}
+
+let snapshotHistory = []; // Store past 60 minutes of snapshots
+let lastSnapshotTime = 0;
+
+// Function to capture a new snapshot
+async function captureSnapshot() {
+    try {
+        const [threads, memory, cpuUsage, cpuName] = await Promise.all([
+            getThreadUsage(),
+            getMemoryUsage(),
+            getCpuUsage(),
+            getCpuName()
+        ]);
+
+        let serversOnThreads = f.getServersOnThreads();
+        
+        const newSnapshot = { timestamp: Date.now(), threads, memory, cpuUsage, cpuName, serversOnThreads };
+        snapshotHistory.push(newSnapshot);
+        
+        // Keep only the past 60 minutes of data
+        const hourAgo = Date.now() - 3600000;
+        snapshotHistory = snapshotHistory.filter(snapshot => snapshot.timestamp > hourAgo);
+        
+        lastSnapshotTime = Date.now();
+    } catch (error) {
+        console.error("Error fetching snapshot info:", error);
+    }
+}
+
+captureSnapshot();
+// Automatically refresh every 60 seconds
+setInterval(captureSnapshot, 60000);
+
+// Route to get thread and memory snapshot
+Router.get("/snapshot", (req, res) => {
+    res.json(snapshotHistory);
+});
+
 module.exports = router;
