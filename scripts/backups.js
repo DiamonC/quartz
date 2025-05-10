@@ -11,16 +11,19 @@ if (!fs.existsSync("./backups")) {
 
 let backupKeys = [];
 let serversFolder = fs.readdirSync("./servers");
-for (let i = 0; i < serversFolder.length; i++) {
-  if (!isNaN(serversFolder[i])) {
-    backupKeys.push({
-      serverId: serversFolder[i],
-      key: Math.random().toString(36).substring(2, 15),
-    });
-  }
-}
+
 
 function cycle() {
+  backupKeys = [];
+  serversFolder = fs.readdirSync("./servers");
+  for (let i = 0; i < serversFolder.length; i++) {
+    if (!isNaN(serversFolder[i])) {
+      backupKeys.push({
+        serverId: serversFolder[i],
+        key: Math.random().toString(36).substring(2, 15),
+      });
+    }
+  }
   let serverFolderItems = fs.readdirSync("./servers");
   for (let i = 0; i < serverFolderItems.length; i++) {
     if (!isNaN(serverFolderItems[i])) {
