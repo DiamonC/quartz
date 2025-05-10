@@ -142,6 +142,11 @@ function scheduleCycleAtUTC(hoursArray) {
   const millisTillNext = Math.min(...nextTimes);
   setTimeout(() => {
     cycle();
+  }
+  , 1000*60*5); //5 minutes after startup
+
+  setTimeout(() => {
+    cycle();
     setInterval(cycle, 6 * 60 * 60 * 1000); // every 6 hours
   }, millisTillNext);
 }
