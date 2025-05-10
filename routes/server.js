@@ -1738,9 +1738,9 @@ router.get("/:id/file/download/:path", function (req, res) {
       if (fs.statSync(`servers/${req.params.id}/${path}`).isDirectory()) {
         //zip the folder and send it to the client
         console.log("unzipping");
-        console.log(`zip -r -q -X ../${sanitizePath(req.params.path)}.zip .`);
+        console.log(`zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`);
         exec(
-          `zip -r -q -X ./${sanitizePath(req.params.path)}.zip .`,
+          `zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`,
           { cwd: `servers/${req.params.id}/` },
           (err) => {
             res.setHeader("Content-Type", "application/zip");
@@ -1762,9 +1762,7 @@ router.get("/:id/file/download/:path", function (req, res) {
                 () => {
                   //delete the zip file
                   fs.unlinkSync(
-                    `servers/${req.params.id}/${sanitizePath(
-                      req.params.path
-                    )}.zip`
+                    `servers/${req.params.id}/${path.split("/").join("*")}.zip`
                   );
                 }
               );
