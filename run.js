@@ -671,6 +671,7 @@ process.stdin.on("data", (data) => {
       } catch (e) {
         console.log("Error refreshing ftp " + e);
       }
+      backups.refreshKeys();
       
       console.log("downloading latest jars and verifying subscriptions...");
       break;
