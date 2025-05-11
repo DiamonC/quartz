@@ -666,6 +666,12 @@ process.stdin.on("data", (data) => {
       verifySubscriptions();
       refreshTempToken();
       removeUnusedAccounts();
+      try {
+        ftp.startFtpServer();
+      } catch (e) {
+        console.log("Error refreshing ftp " + e);
+      }
+      
       console.log("downloading latest jars and verifying subscriptions...");
       break;
     case "scanAccountIds":
