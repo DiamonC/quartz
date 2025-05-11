@@ -1738,9 +1738,9 @@ router.get("/:id/file/download/:path", function (req, res) {
       if (fs.statSync(`servers/${req.params.id}/${path}`).isDirectory()) {
         //zip the folder and send it to the client
         console.log("unzipping");
-        console.log(`zip -r -q -X ../${sanitizePath(req.params.path)}.zip .`);
+        console.log(`zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`);
         exec(
-          `zip -r -q -X ./${sanitizePath(req.params.path)}.zip .`,
+          `zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`,
           { cwd: `servers/${req.params.id}/` },
           (err) => {
             res.setHeader("Content-Type", "application/zip");
@@ -1762,9 +1762,7 @@ router.get("/:id/file/download/:path", function (req, res) {
                 () => {
                   //delete the zip file
                   fs.unlinkSync(
-                    `servers/${req.params.id}/${sanitizePath(
-                      req.params.path
-                    )}.zip`
+                    `servers/${req.params.id}/${path.split("/").join("*")}.zip`
                   );
                 }
               );
@@ -1855,6 +1853,64 @@ router.post("/:id/file/:path", function (req, res) {
     res.status(401).json({ msg: "Invalid credentials." });
   }
 });
+
+router.post("/:id/renamefile", function (req, res) {
+  const email   = req.headers.username;
+  const token   = req.headers.token;
+  const account = readJSON(`accounts/${email}.json`);
+  const server  = readJSON(`servers/${req.params.id}/server.json`);
+
+  // 1) check access & server directory exists
+  if (!hasAccess(token, account, req.params.id) ||
+      !fs.existsSync(`servers/${req.params.id}/`)) {
+    return res.status(401).json({ msg: "Invalid credentials." });
+  }
+
+  let from = sanitizePath(req.body.from);
+  let to   = sanitizePath(req.body.to);
+
+  // disallow attempts to rename core files
+  const forbidden = ["server.json", "server.jar", "modrinth.index.json", "curseforge.index.json"];
+  if (forbidden.includes(path.basename(from)) ||
+      forbidden.includes(path.basename(to))) {
+    return res.status(400).json({ msg: "Cannot rename protected files." });
+  }
+
+  // normalize any “*” placeholder back to slashes, if you’re using that convention
+  from = from.includes("*") ? from.split("*").join("/") : from;
+
+  // only allow a single name in “to” (no sub-dirs)
+  if (to.includes("/") || to.includes("*")) {
+    return res.status(400).json({ msg: "Invalid new name." });
+  }
+
+  const serverRoot = path.resolve(`servers/${req.params.id}`);
+  const srcPath    = path.resolve(serverRoot, from);
+  const destPath   = path.resolve(serverRoot, path.dirname(from), to);
+
+  // 2) ensure both paths are still under the server folder
+  if (!srcPath.startsWith(serverRoot) || !destPath.startsWith(serverRoot)) {
+    return res.status(400).json({ msg: "Invalid path." });
+  }
+
+  // 3) ensure src exists and dest doesn’t
+  if (!fs.existsSync(srcPath)) {
+    return res.status(404).json({ msg: "Source not found." });
+  }
+  if (fs.existsSync(destPath)) {
+    return res.status(409).json({ msg: "A file/folder with that name already exists." });
+  }
+
+  // 4) perform the rename
+  try {
+    fs.renameSync(srcPath, destPath);
+    return res.status(200).json({ msg: "Rename successful." });
+  } catch (err) {
+    console.error("Rename error:", err);
+    return res.status(500).json({ msg: "Server error during rename." });
+  }
+});
+
 
 router.post(
   "/:id/file/upload/:path",

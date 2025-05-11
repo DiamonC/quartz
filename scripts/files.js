@@ -71,35 +71,65 @@ function folderSizeRecursive(directoryPath) {
   return bytes;
 }
 
+
 function readFilesRecursive(directoryPath) {
+  // normalize the incoming path once
+  directoryPath = directoryPath.replace(/\/\//g, '/');
+
   if (!fs.existsSync(directoryPath)) {
     console.log(`Directory "${directoryPath}" does not exist.`);
-    return;
+    return [];
   }
 
   const result = [];
-  const files = fs.readdirSync(directoryPath);
+  const entries = fs.readdirSync(directoryPath);
 
-  files.forEach((file) => {
-    //if it isn't a hidden file/directory
-    if (file.charAt(0) != ".") {
-      //replace any double slashes with single ones
-      file = file.replace(/\/\//g, "/");
-      directoryPath = directoryPath.replace(/\/\//g, "/");
-      const curPath = `${directoryPath}/${file}`;
-      if (curPath.includes("python_embeded")) console.log(curPath);
+  for (const entry of entries) {
+    if (entry.startsWith('.')) continue;           // skip hidden
+    const curPath = path.join(directoryPath, entry)
+                        .replace(/\/\//g, '/');
 
-      if (fs.lstatSync(curPath).isDirectory()) {
-        const subDir = readFilesRecursive(curPath);
-        result.push([file + ":" + curPath, subDir]);
-      } else {
-        result.push(file + ":" + curPath);
+    const isDir = fs.lstatSync(curPath).isDirectory();
+    if (isDir) {
+      // 1) Recurse
+      const subTree = readFilesRecursive(curPath);
+
+      // 2) Sum sizes in subtree
+      let totalSize = 0;
+      const accumulate = (node) => {
+        if (typeof node === 'string') {
+          // "name:path:size"
+          const parts = node.split(':');
+          totalSize += Number(parts[2]) || 0;
+        } else if (Array.isArray(node)) {
+          // [ "name:path:size", [ ... ] ]
+          const [dirDescriptor, children] = node;
+          const sizePart = Number(dirDescriptor.split(':')[2]) || 0;
+          totalSize += sizePart;
+          children.forEach(accumulate);
+        }
+      };
+      subTree.forEach(accumulate);
+
+      // 3) Build descriptor with summed size
+      const dirDescriptor = `${entry}:${curPath}:${totalSize}`;
+      result.push([dirDescriptor, subTree]);
+
+    } else {
+      // file: just stat its size
+      let size = 0;
+      try {
+        size = fs.statSync(curPath).size;
+      } catch (err) {
+        console.warn(`Could not stat "${curPath}":`, err);
       }
+      result.push(`${entry}:${curPath}:${size}`);
     }
-  });
+  }
 
   return result;
 }
+
 
 const { execSync, exec } = require("child_process");
 const path = require("path");
