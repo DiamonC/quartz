@@ -720,6 +720,7 @@ router.post(`/new/:id`, function (req, res) {
                           } catch (e) {
                             console.log("error restarting ftp container " + e);
                           }
+                          backups.refreshKeys();
                           f.run(
                             id,
                             req.body.software,
