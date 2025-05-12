@@ -1613,22 +1613,6 @@ router.delete("/:id/proxy/servers", function (req, res) {
   }
 });
 
-router.get("/:id/files", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (utils.hasAccess(token, account, req.params.id)) {
-    if (fs.existsSync(`servers/${req.params.id}/`)) {
-      res
-        .status(200)
-        .json(files.readFilesRecursive(`servers/${req.params.id}/`));
-    } else {
-      res.status(200).json([]);
-    }
-  }
-});
-
 router.get("/:id/file/:path", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;

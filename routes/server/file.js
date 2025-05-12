@@ -15,6 +15,7 @@ const exec = require("child_process").exec;
 const fs = require("fs");
 const writeJSON = require("../../scripts/utils.js").writeJSON;
 const enableVirusScan = JSON.parse(config.enableVirusScan);
+const backups = require("../../scripts/backups.js");
 
 router.post("/delete/:path", function (req, res) {
   const email = req.headers.username;
@@ -222,7 +223,7 @@ router.get("/download/:path", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (utils.hasAccess(token, account, req.params.id)) {
+if (req.query.key == backups.getBackupKey(req.params.id)) {
     let path = utils.sanitizePath(req.params.path);
     if (utils.sanitizePath(req.params.path).includes("*")) {
       path = utils.sanitizePath(req.params.path).split("*").join("/");
@@ -327,5 +328,21 @@ router.post(
     }
   }
 );
+
+router.get("/files", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON("servers/" + req.params.id + "/server.json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    if (fs.existsSync(`servers/${req.params.id}/`)) {
+      res
+        .status(200)
+        .json({files:files.readFilesRecursive(`servers/${req.params.id}/`),key:backups.getBackupKey(req.params.id)});
+    } else {
+      res.status(200).json([]);
+    }
+  }
+});
 
 module.exports = router;
