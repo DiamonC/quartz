@@ -117,6 +117,48 @@ router.post("/extract/:path", function (req, res) {
   }
 });
 
+router.post("/compress/:path", (req, res) => {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let serverId = req.params.id;
+  if (
+    utils.hasAccess(token, account, req.params.id) &&
+    fs.existsSync(`servers/${req.params.id}/`)
+  ) {
+    // Sanitize and normalize the requested path
+    let folderPath = utils.sanitizePath(rawPath);
+    if (folderPath.includes("*")) {
+      folderPath = folderPath.split("*").join("/");
+    }
+
+    const fullFolder = `servers/${serverId}/${folderPath}`;
+    const folderName = folderPath.split("/").pop();
+    const zipName = `${folderName}.zip`;
+    const fullZip = `servers/${serverId}/${zipName}`;
+
+    // Ensure the target is a directory
+    if (fs.existsSync(fullFolder) && fs.lstatSync(fullFolder).isDirectory()) {
+      // Build and run the zip command
+      // -r : recurse into directories, -j: junk the paths inside zip if you prefer flat structure
+      const cmd = `zip -r "${fullZip}" "${folderName}"`;
+      console.log(`cd servers/${serverId} && ${cmd}`);
+
+      exec(cmd, { cwd: `servers/${serverId}` }, (err, stdout, stderr) => {
+        if (err) {
+          console.error("zip error:", stderr || err);
+          return res.status(500).json({ msg: "Compression failed." });
+        }
+        return res.status(200).json({ msg: "Done", zip: zipName });
+      });
+    } else {
+      return res.status(400).json({ msg: "Invalid folder path." });
+    }
+  } else {
+    return res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
+
 router.post("/rename", function (req, res) {
   const email   = req.headers.username;
   const token   = req.headers.token;
