@@ -1969,27 +1969,6 @@ router.post(
   }
 );
 
-router.post("/:id/rename/", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  if (
-    utils.hasAccess(token, account, req.params.id) &&
-    fs.existsSync(`servers/${req.params.id}/`)
-  ) {
-    let server = readJSON(`servers/${req.params.id}/server.json`);
-    server.name = req.query.newName;
-    writeJSON(`servers/${req.params.id}/server.json`, server);
-
-    let account = readJSON("accounts/" + email + ".json");
-
-    writeJSON(`accounts/${email}.json`, account);
-    res.status(200).json({ msg: "Done" });
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
-  }
-});
-
 router.get("/:id/storageInfo", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
