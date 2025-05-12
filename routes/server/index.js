@@ -1730,66 +1730,6 @@ router.get("/:id/download", function (req, res) {
   }
 });
 
-router.get("/:id/file/download/:path", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (utils.hasAccess(token, account, req.params.id)) {
-    let path = utils.sanitizePath(req.params.path);
-    if (utils.sanitizePath(req.params.path).includes("*")) {
-      path = utils.sanitizePath(req.params.path).split("*").join("/");
-    }
-    if (fs.existsSync(`servers/${req.params.id}/${path}`)) {
-      if (fs.statSync(`servers/${req.params.id}/${path}`).isDirectory()) {
-        //zip the folder and send it to the client
-        console.log("unzipping");
-        console.log(`zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`);
-        exec(
-          `zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`,
-          { cwd: `servers/${req.params.id}/` },
-          (err) => {
-            res.setHeader("Content-Type", "application/zip");
-
-            res.setHeader(
-              "Content-Disposition",
-              `attachment; filename=${utils.sanitizePath(req.params.path)}.zip`
-            );
-            console.log(
-              `downloading folder servers/${req.params.id}/${utils.sanitizePath(
-                req.params.path
-              )}.zip`
-            );
-            res
-              .status(200)
-              .download(
-                `servers/${req.params.id}/${utils.sanitizePath(req.params.path)}.zip`,
-                `${utils.sanitizePath(req.params.path)}.zip`,
-                () => {
-                  //delete the zip file
-                  fs.unlinkSync(
-                    `servers/${req.params.id}/${path.split("/").join("*")}.zip`
-                  );
-                }
-              );
-          }
-        );
-      } else {
-        res.setHeader("Content-Type", "application/octet-stream");
-        res.setHeader(
-          "Content-Disposition",
-          `attachment; filename=${utils.sanitizePath(req.params.path)}`
-        );
-        res.status(200).download(`servers/${req.params.id}/${path}`);
-      }
-    } else {
-      res.status(400).json({ msg: "Invalid request." });
-    }
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
-  }
-});
-
 router.post("/:id/file/:path", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
