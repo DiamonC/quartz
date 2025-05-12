@@ -1800,58 +1800,6 @@ router.post("/:id/file/:path", function (req, res) {
   }
 });
 
-
-router.post(
-  "/:id/file/upload/:path",
-  upload.single("file"),
-  function (req, res) {
-    let email = req.headers.username;
-    let token = req.headers.token;
-    let account = readJSON("accounts/" + email + ".json");
-    let server = readJSON("servers/" + req.params.id + "/server.json");
-    if (
-      utils.hasAccess(token, account, req.params.id) &&
-      fs.existsSync(`servers/${req.params.id}/`)
-    ) {
-      let id = req.params.id;
-      let path = utils.sanitizePath(req.params.path);
-      let filename = req.query.filename;
-      if (utils.sanitizePath(req.params.path).includes("*")) {
-        path = utils.sanitizePath(req.params.path).split("*").join("/");
-      }
-
-      if (enableVirusScan) {
-        console.log(req.file.path);
-        exec(
-          `clamdscan --multiscan --fdpass ${req.file.path}`,
-          {},
-          (err, stdout, stderr) => {
-            if (stdout.indexOf("Infected files: 0") != -1) {
-              loadFile();
-            } else {
-              res.send("Virus Detected.");
-              fs.rmSync(req.file.path);
-            }
-          }
-        );
-      } else {
-        loadFile();
-      }
-
-      function loadFile() {
-        fs.copyFileSync(
-          req.file.path,
-          "servers/" + id + "/" + path + "/" + filename
-        );
-        fs.rmSync(req.file.path);
-        res.status(200).send("Upload Complete.");
-      }
-    } else {
-      res.status(401).json({ msg: "Invalid credentials." });
-    }
-  }
-);
-
 router.post("/:id/rename/", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
