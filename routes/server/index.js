@@ -1860,63 +1860,6 @@ router.post("/:id/file/:path", function (req, res) {
   }
 });
 
-router.post("/:id/renamefile", function (req, res) {
-  const email   = req.headers.username;
-  const token   = req.headers.token;
-  const account = readJSON(`accounts/${email}.json`);
-  const server  = readJSON(`servers/${req.params.id}/server.json`);
-
-  // 1) check access & server directory exists
-  if (!utils.hasAccess(token, account, req.params.id) ||
-      !fs.existsSync(`servers/${req.params.id}/`)) {
-    return res.status(401).json({ msg: "Invalid credentials." });
-  }
-
-  let from = utils.sanitizePath(req.body.from);
-  let to   = utils.sanitizePath(req.body.to);
-
-  // disallow attempts to rename core files
-  const forbidden = ["server.json", "server.jar", "modrinth.index.json", "curseforge.index.json"];
-  if (forbidden.includes(path.basename(from)) ||
-      forbidden.includes(path.basename(to))) {
-    return res.status(400).json({ msg: "Cannot rename protected files." });
-  }
-
-  // normalize any “*” placeholder back to slashes, if you’re using that convention
-  from = from.includes("*") ? from.split("*").join("/") : from;
-
-  // only allow a single name in “to” (no sub-dirs)
-  if (to.includes("/") || to.includes("*")) {
-    return res.status(400).json({ msg: "Invalid new name." });
-  }
-
-  const serverRoot = path.resolve(`servers/${req.params.id}`);
-  const srcPath    = path.resolve(serverRoot, from);
-  const destPath   = path.resolve(serverRoot, path.dirname(from), to);
-
-  // 2) ensure both paths are still under the server folder
-  if (!srcPath.startsWith(serverRoot) || !destPath.startsWith(serverRoot)) {
-    return res.status(400).json({ msg: "Invalid path." });
-  }
-
-  // 3) ensure src exists and dest doesn’t
-  if (!fs.existsSync(srcPath)) {
-    return res.status(404).json({ msg: "Source not found." });
-  }
-  if (fs.existsSync(destPath)) {
-    return res.status(409).json({ msg: "A file/folder with that name already exists." });
-  }
-
-  // 4) perform the rename
-  try {
-    fs.renameSync(srcPath, destPath);
-    return res.status(200).json({ msg: "Rename successful." });
-  } catch (err) {
-    console.error("Rename error:", err);
-    return res.status(500).json({ msg: "Server error during rename." });
-  }
-});
-
 
 router.post(
   "/:id/file/upload/:path",
@@ -1968,6 +1911,27 @@ router.post(
     }
   }
 );
+
+router.post("/:id/rename/", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (
+    utils.hasAccess(token, account, req.params.id) &&
+    fs.existsSync(`servers/${req.params.id}/`)
+  ) {
+    let server = readJSON(`servers/${req.params.id}/server.json`);
+    server.name = req.query.newName;
+    writeJSON(`servers/${req.params.id}/server.json`, server);
+
+    let account = readJSON("accounts/" + email + ".json");
+
+    writeJSON(`accounts/${email}.json`, account);
+    res.status(200).json({ msg: "Done" });
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
 
 router.get("/:id/storageInfo", function (req, res) {
   let email = req.headers.username;
