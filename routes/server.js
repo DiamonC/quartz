@@ -2048,13 +2048,11 @@ router.delete("/:id/file/:path", function (req, res) {
 router.delete("/:id/folder/:path", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
-  password = req.body.password;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON(`servers/${req.params.id}/server.json`);
   if (
     hasAccess(token, account, req.params.id) &&
-    fs.existsSync(`servers/${req.params.id}/`) &&
-    files.hash(password, account.salt).split(":")[1] == account.password
+    fs.existsSync(`servers/${req.params.id}/`)
   ) {
     console.log("DELETING " + sanitizePath(req.params.path) + " " + email);
     let path = sanitizePath(req.params.path);
