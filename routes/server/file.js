@@ -15,7 +15,7 @@ const exec = require("child_process").exec;
 const fs = require("fs");
 const writeJSON = require("../../scripts/utils.js").writeJSON;
 
-router.delete("/:path", function (req, res) {
+router.post("/delete/:path", function (req, res) {
   const email = req.headers.username;
   const token = req.headers.token;
   const folder = req.query.folder === "true"; // check if this is a folder deletion
