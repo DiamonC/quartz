@@ -24,7 +24,7 @@ function startFtpServer() {
                 let server = data.servers[j];
                 let tempToken = crypto.randomBytes(6).toString("hex");
                 if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
-    
+                console.log(`Adding user ${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`);
                 users.push(`${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`); 
              }
             }
@@ -87,10 +87,10 @@ function startFtpServer() {
         exec(`docker run -d --name sftp_server -p ${port}:22 -v sftp_ssh:/etc/ssh ${mountArray.join(" ")}atmoz/sftp ${usersArray.join(" ")}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error starting FTP server: ${error}`);
-             
+                console.log(`docker run -d --name sftp_server -p ${port}:22 -v sftp_ssh:/etc/ssh ${mountArray.join(" ")}atmoz/sftp ${usersArray.join(" ")}`);
                 return;
             }
-            console.log(`docker run -d --name sftp_server -p ${port}:22 -v sftp_ssh:/etc/ssh ${mountArray.join(" ")}atmoz/sftp ${usersArray.join(" ")}`);
+           
             console.log(`FTP server started on port ${port}`);
         });
     }, 2000);
