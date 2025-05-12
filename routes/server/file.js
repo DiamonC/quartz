@@ -96,11 +96,11 @@ router.post("/extract/:path", function (req, res) {
           `/${filename.split(".zip")[0]}"`
       );
       exec(
-        `unzip -o servers/` +
+        `unzip -o "servers/` +
           req.params.id +
-          `/${path} -d servers/` +
+          `/${path}" -d "servers/` +
           req.params.id +
-          `/${path.split(".zip")[0]}`,
+          `/${path.split(".zip")[0]}"`,
         (err, stdout, stderr) => {
           if (err) {
             console.log(err);
