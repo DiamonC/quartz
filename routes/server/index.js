@@ -1969,55 +1969,6 @@ router.post(
   }
 );
 
-router.post("/:id/extractfile/:path", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (
-    utils.hasAccess(token, account, req.params.id) &&
-    fs.existsSync(`servers/${req.params.id}/`)
-  ) {
-    let path = utils.sanitizePath(req.params.path);
-    if (utils.sanitizePath(req.params.path).includes("*")) {
-      path = utils.sanitizePath(req.params.path).split("*").join("/");
-    }
-    let filename = path.split("/")[path.split("/").length - 1];
-    if (
-      fs.existsSync(`servers/${req.params.id}/${path}`) &&
-      filename.includes(".zip")
-    ) {
-      //unzip the file and put it in /servers/id/{filename}
-      const exec = require("child_process").exec;
-      console.log(
-        `unzip -o "servers/` +
-          req.params.id +
-          `/${path}" -d "servers/` +
-          req.params.id +
-          `/${filename.split(".zip")[0]}"`
-      );
-      exec(
-        `unzip -o servers/` +
-          req.params.id +
-          `/${path} -d servers/` +
-          req.params.id +
-          `/${path.split(".zip")[0]}`,
-        (err, stdout, stderr) => {
-          if (err) {
-            console.log(err);
-          } else {
-            res.status(200).json({ msg: "Done" });
-          }
-        }
-      );
-    } else {
-      res.status(400).json({ msg: "Invalid request." });
-    }
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
-  }
-});
-
 router.post("/:id/rename/", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
