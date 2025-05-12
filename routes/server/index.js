@@ -64,7 +64,7 @@ function writeServer(
   fs.writeFileSync("servers.tsv", tsv.join("\n"));
 }
 
-router.use("/:id/file", require("./file"));
+router.use("/:id/files", require("./files.js"));
 
 
 router.get(`/reserve`, function (req, res) {

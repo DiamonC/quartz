@@ -329,7 +329,7 @@ router.post(
   }
 );
 
-router.get("/files", function (req, res) {
+router.get("/", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
