@@ -105,7 +105,7 @@ function refreshKeys() {
     if (!isNaN(serversFolder[i])) {
       backupKeys.push({
         serverId: serversFolder[i],
-        key: Math.random().toString(36).substring(2, 15),
+        key: crypto.randomBytes(10).toString("hex"),
       });
     }
   }
