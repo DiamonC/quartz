@@ -795,7 +795,7 @@ const security = (req, res, next) => {
 // middlewares
 app.use(limiter, express.json(), cors());
 
-app.use("/server", require("./routes/server"));
+app.use("/server", require("./routes/server/index.js"));
 app.use("/checkout", require("./routes/checkout"));
 app.use("/info", require("./routes/info"));
 app.use("/terminal", require("./routes/terminal"));

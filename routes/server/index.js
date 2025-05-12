@@ -1,18 +1,19 @@
 const express = require("express");
 const path = require("path");
 const router = express.Router();
-const files = require("../scripts/files.js");
-const f = require("../scripts/mc.js");
+const files = require("../../scripts/files.js");
+const f = require("../../scripts/mc.js");
 const multer = require("multer");
 const upload = multer({ dest: "assets/uploads/" });
-const readJSON = require("../scripts/utils.js").readJSON;
+const readJSON = require("../../scripts/utils.js").readJSON;
 const data = readJSON("assets/data.json");
 const JsDiff = require("diff");
-const config = require("../scripts/utils.js").getConfig();
-const ftp = require("../scripts/ftp.js");
+const config = require("../../scripts/utils.js").getConfig();
+const ftp = require("../../scripts/ftp.js");
 const exec = require("child_process").exec;
 const fs = require("fs");
-const writeJSON = require("../scripts/utils.js").writeJSON;
+const writeJSON = require("../../scripts/utils.js").writeJSON;
+const utils = require("../../scripts/utils.js");
 
 const stripeKey = config.stripeKey;
 const stripe = require("stripe")(stripeKey);
@@ -21,8 +22,8 @@ const enablePay = JSON.parse(config.enablePay);
 const enableVirusScan = JSON.parse(config.enableVirusScan);
 const portOffset = 10000;
 const idOffset = parseInt(config.idOffset);
-const stats = require("../scripts/stats.js");
-const backups = require("../scripts/backups.js");
+const stats = require("../../scripts/stats.js");
+const backups = require("../../scripts/backups.js");
 
 function writeServer(
   id,
@@ -62,6 +63,10 @@ function writeServer(
   }
   fs.writeFileSync("servers.tsv", tsv.join("\n"));
 }
+
+router.use("/:id/file", require("./file"));
+
+
 router.get(`/reserve`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
@@ -213,7 +218,7 @@ router.get(`/:id`, function (req, res) {
     let token = req.headers.token;
     let account = readJSON("accounts/" + email + ".json");
 
-    if (hasAccess(token, account, req.params.id)) {
+    if (utils.hasAccess(token, account, req.params.id)) {
       //add cors header
       res.header("Access-Control-Allow-Origin", "*");
       let id = req.params.id;
@@ -231,7 +236,7 @@ router.post(`/:id/state/:state`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     state = req.params.state;
     let id = req.params.id;
     let token = req.headers.token;
@@ -276,7 +281,7 @@ router.delete(`/:id/:modtype(plugin|datapack|mod)`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     let id = req.params.id;
     pluginId = req.query.pluginId;
     pluginPlatform = req.query.pluginPlatform;
@@ -317,7 +322,7 @@ router.get(`/:id/:modtype(plugins|datapacks|mods)`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     let modtype = req.params.modtype;
     let extension = "jar";
     if (modtype == "datapacks") {
@@ -406,7 +411,7 @@ router.post(`/:id/version/`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     let id = req.params.id;
     version = req.query.version;
 
@@ -428,7 +433,7 @@ router.post(`/:id/add/:modtype(plugin|datapack|mod)`, function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
 
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     //add cors header
     res.header("Access-Control-Allow-Origin", "*");
     let id = req.params.id;
@@ -473,7 +478,7 @@ router.post(`/:id/modpack`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     f.stopAsync(req.params.id, () => {
       f.downloadModpack(
         req.params.id,
@@ -495,7 +500,7 @@ router.post(
     let token = req.headers.token;
     let account = readJSON("accounts/" + email + ".json");
     let server = readJSON("servers/" + req.params.id + "/server.json");
-    if (hasAccess(token, account, req.params.id)) {
+    if (utils.hasAccess(token, account, req.params.id)) {
       let id = req.params.id;
 
       filename = req.query.filename;
@@ -789,7 +794,7 @@ router.post(`/:id/setInfo`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     let id = req.params.id;
     iconUrl = req.body.icon;
     desc = req.body.desc;
@@ -881,7 +886,7 @@ router.get(`/:id/getInfo`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     //send the motd and iconUrl
     let iconUrl = "/images/placeholder.webp";
     let desc = "";
@@ -986,7 +991,7 @@ router.delete(`/:id`, function (req, res) {
     let account = readJSON("accounts/" + email + ".json");
     let server = readJSON("servers/" + req.params.id + "/server.json");
 
-    if (hasAccess(token, account, req.params.id)) {
+    if (utils.hasAccess(token, account, req.params.id)) {
       if (!fs.existsSync("assets/deletions-log.txt")) {
         fs.writeFileSync(
           "assets/deletions-log.txt",
@@ -1065,7 +1070,7 @@ router.get("/:id/world", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     //zip /servers/id/world and send it to the client
     let id = req.params.id;
     let path = "servers/" + id;
@@ -1142,7 +1147,7 @@ router.post("/:id/world", upload.single("file"), function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     let lock = false;
     let lock2 = false;
     console.log("before stopping");
@@ -1359,7 +1364,7 @@ router.get("/:id/proxy/info", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (f.checkServer(req.params.id)["software"] == "velocity") {
       let lobbyName;
 
@@ -1392,7 +1397,7 @@ router.post("/:id/proxy/info", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (f.checkServer(req.params.id)["software"] === "velocity") {
       let config = fs.readFileSync(
         `servers/${req.params.id}/velocity.toml`,
@@ -1419,7 +1424,7 @@ router.get("/:id/proxy/servers", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (f.checkServer(req.params.id)["software"] === "velocity") {
       let config = fs.readFileSync(
         `servers/${req.params.id}/velocity.toml`,
@@ -1462,7 +1467,7 @@ router.post("/:id/proxy/servers", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (f.checkServer(req.params.id)["software"] === "velocity") {
       let config = fs.readFileSync(
         `servers/${req.params.id}/velocity.toml`,
@@ -1558,7 +1563,7 @@ router.delete("/:id/proxy/servers", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (f.checkServer(req.params.id)["software"] === "velocity") {
       let config = fs.readFileSync(
         `servers/${req.params.id}/velocity.toml`,
@@ -1613,7 +1618,7 @@ router.get("/:id/files", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (fs.existsSync(`servers/${req.params.id}/`)) {
       res
         .status(200)
@@ -1629,8 +1634,8 @@ router.get("/:id/file/:path", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
-    let path = sanitizePath(req.params.path).split("*").join("/");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let path = utils.sanitizePath(req.params.path).split("*").join("/");
     if (fs.existsSync(`servers/${req.params.id}/${path}`)) {
       if (fs.lstatSync(`servers/${req.params.id}/${path}`).isDirectory()) {
         res.status(200).json({
@@ -1662,13 +1667,13 @@ router.get("/:id/file/:path", function (req, res) {
           //get the file's previous versions
           if (
             fs.existsSync(
-              `servers/${req.params.id}/.fileVersions/${sanitizePath(
+              `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
                 req.params.path
               )}`
             )
           ) {
             versionsArray = fs.readdirSync(
-              `servers/${req.params.id}/.fileVersions/${sanitizePath(
+              `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
                 req.params.path
               )}`
             );
@@ -1694,7 +1699,7 @@ router.get("/:id/download", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (fs.existsSync(`servers/${req.params.id}/`)) {
       exec(
         `zip -r -q -X ${req.params.id}.zip .`,
@@ -1730,10 +1735,10 @@ router.get("/:id/file/download/:path", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (hasAccess(token, account, req.params.id)) {
-    let path = sanitizePath(req.params.path);
-    if (sanitizePath(req.params.path).includes("*")) {
-      path = sanitizePath(req.params.path).split("*").join("/");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let path = utils.sanitizePath(req.params.path);
+    if (utils.sanitizePath(req.params.path).includes("*")) {
+      path = utils.sanitizePath(req.params.path).split("*").join("/");
     }
     if (fs.existsSync(`servers/${req.params.id}/${path}`)) {
       if (fs.statSync(`servers/${req.params.id}/${path}`).isDirectory()) {
@@ -1748,18 +1753,18 @@ router.get("/:id/file/download/:path", function (req, res) {
 
             res.setHeader(
               "Content-Disposition",
-              `attachment; filename=${sanitizePath(req.params.path)}.zip`
+              `attachment; filename=${utils.sanitizePath(req.params.path)}.zip`
             );
             console.log(
-              `downloading folder servers/${req.params.id}/${sanitizePath(
+              `downloading folder servers/${req.params.id}/${utils.sanitizePath(
                 req.params.path
               )}.zip`
             );
             res
               .status(200)
               .download(
-                `servers/${req.params.id}/${sanitizePath(req.params.path)}.zip`,
-                `${sanitizePath(req.params.path)}.zip`,
+                `servers/${req.params.id}/${utils.sanitizePath(req.params.path)}.zip`,
+                `${utils.sanitizePath(req.params.path)}.zip`,
                 () => {
                   //delete the zip file
                   fs.unlinkSync(
@@ -1773,7 +1778,7 @@ router.get("/:id/file/download/:path", function (req, res) {
         res.setHeader("Content-Type", "application/octet-stream");
         res.setHeader(
           "Content-Disposition",
-          `attachment; filename=${sanitizePath(req.params.path)}`
+          `attachment; filename=${utils.sanitizePath(req.params.path)}`
         );
         res.status(200).download(`servers/${req.params.id}/${path}`);
       }
@@ -1791,12 +1796,12 @@ router.post("/:id/file/:path", function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}/`)
   ) {
-    let path = sanitizePath(req.params.path);
-    if (sanitizePath(req.params.path).includes("*")) {
-      path = sanitizePath(req.params.path).split("*").join("/");
+    let path = utils.sanitizePath(req.params.path);
+    if (utils.sanitizePath(req.params.path).includes("*")) {
+      path = utils.sanitizePath(req.params.path).split("*").join("/");
     }
     let extension = path.split(".")[path.split(".").length - 1];
     let filename = path.split("/")[path.split("/").length - 1];
@@ -1810,13 +1815,13 @@ router.post("/:id/file/:path", function (req, res) {
     ) {
       if (
         !fs.existsSync(
-          `servers/${req.params.id}/.fileVersions/${sanitizePath(
+          `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
             req.params.path
           )}`
         )
       ) {
         fs.mkdirSync(
-          `servers/${req.params.id}/.fileVersions/${sanitizePath(
+          `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
             req.params.path
           )}`
         );
@@ -1839,7 +1844,7 @@ router.post("/:id/file/:path", function (req, res) {
       let filename = fs.statSync(`servers/${req.params.id}/${path}`).mtimeMs;
       console.log(filename);
       fs.writeFileSync(
-        `servers/${req.params.id}/.fileVersions/${sanitizePath(
+        `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
           req.params.path
         )}/${filename}`,
         diffString
@@ -1862,13 +1867,13 @@ router.post("/:id/renamefile", function (req, res) {
   const server  = readJSON(`servers/${req.params.id}/server.json`);
 
   // 1) check access & server directory exists
-  if (!hasAccess(token, account, req.params.id) ||
+  if (!utils.hasAccess(token, account, req.params.id) ||
       !fs.existsSync(`servers/${req.params.id}/`)) {
     return res.status(401).json({ msg: "Invalid credentials." });
   }
 
-  let from = sanitizePath(req.body.from);
-  let to   = sanitizePath(req.body.to);
+  let from = utils.sanitizePath(req.body.from);
+  let to   = utils.sanitizePath(req.body.to);
 
   // disallow attempts to rename core files
   const forbidden = ["server.json", "server.jar", "modrinth.index.json", "curseforge.index.json"];
@@ -1922,14 +1927,14 @@ router.post(
     let account = readJSON("accounts/" + email + ".json");
     let server = readJSON("servers/" + req.params.id + "/server.json");
     if (
-      hasAccess(token, account, req.params.id) &&
+      utils.hasAccess(token, account, req.params.id) &&
       fs.existsSync(`servers/${req.params.id}/`)
     ) {
       let id = req.params.id;
-      let path = sanitizePath(req.params.path);
+      let path = utils.sanitizePath(req.params.path);
       let filename = req.query.filename;
-      if (sanitizePath(req.params.path).includes("*")) {
-        path = sanitizePath(req.params.path).split("*").join("/");
+      if (utils.sanitizePath(req.params.path).includes("*")) {
+        path = utils.sanitizePath(req.params.path).split("*").join("/");
       }
 
       if (enableVirusScan) {
@@ -1970,12 +1975,12 @@ router.post("/:id/extractfile/:path", function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}/`)
   ) {
-    let path = sanitizePath(req.params.path);
-    if (sanitizePath(req.params.path).includes("*")) {
-      path = sanitizePath(req.params.path).split("*").join("/");
+    let path = utils.sanitizePath(req.params.path);
+    if (utils.sanitizePath(req.params.path).includes("*")) {
+      path = utils.sanitizePath(req.params.path).split("*").join("/");
     }
     let filename = path.split("/")[path.split("/").length - 1];
     if (
@@ -2013,77 +2018,12 @@ router.post("/:id/extractfile/:path", function (req, res) {
   }
 });
 
-router.delete("/:id/file/:path", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON(`servers/${req.params.id}/server.json`);
-  if (
-    hasAccess(token, account, req.params.id) &&
-    fs.existsSync(`servers/${req.params.id}/`)
-  ) {
-    console.log("unsanitized path: " + req.params.path);
-    console.log("sanitized path: " + sanitizePath(req.params.path));
-    let path = sanitizePath(req.params.path);
-    console.log("DELETING " + sanitizePath(req.params.path) + " " + email);
-    if (sanitizePath(req.params.path).includes("*")) {
-      path = sanitizePath(req.params.path).split("*").join("/");
-    }
-    let extension = path.split(".")[path.split(".").length - 1];
-    let filename = path.split("/")[path.split("/").length - 1];
-    console.log(`servers/${req.params.id}/${path}`);
-    if (
-      fs.existsSync(`servers/${req.params.id}/${path}`) &&
-      filename != "server.json"
-    ) {
-      fs.unlinkSync(`servers/${req.params.id}/${path}`);
-      res.status(200).json({ msg: "Done" });
-    } else {
-      res.status(400).json({ msg: "Invalid request." });
-    }
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
-  }
-});
-
-router.delete("/:id/folder/:path", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON(`servers/${req.params.id}/server.json`);
-  if (
-    hasAccess(token, account, req.params.id) &&
-    fs.existsSync(`servers/${req.params.id}/`)
-  ) {
-    console.log("DELETING " + sanitizePath(req.params.path) + " " + email);
-    let path = sanitizePath(req.params.path);
-    if (sanitizePath(req.params.path).includes("*")) {
-      path = sanitizePath(req.params.path).split("*").join("/");
-    }
-    if (
-      fs.existsSync(`servers/${req.params.id}/${path}`) &&
-      path.split("").length >= 3
-    ) {
-      exec(`rm -rf servers/${req.params.id}/${path}`, (err) => {
-        if (err) {
-          console.log(err);
-        }
-      });
-      res.status(200).json({ msg: "Done" });
-    } else {
-      res.status(400).json({ msg: "Invalid request." });
-    }
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
-  }
-});
-
 router.post("/:id/rename/", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}/`)
   ) {
     let server = readJSON(`servers/${req.params.id}/server.json`);
@@ -2105,7 +2045,7 @@ router.get("/:id/storageInfo", function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   const server = readJSON(`servers/${req.params.id}/server.json`);
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}/`)
   ) {
     let limit = -1;
@@ -2140,7 +2080,7 @@ router.get("/:id/liveStats", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}/`)
   ) {
     const object = stats.getLiveStats(req.params.id);
@@ -2159,7 +2099,7 @@ router.get("/:id/getFtpToken", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}/`)
   ) {
     if (account.accountId.includes("acc_"))
@@ -2182,7 +2122,7 @@ router.post("/:id/claimSubdomain", function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON(`servers/${req.params.id}/server.json`);
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}`)
   ) {
     if (server.subdomain !== undefined) {
@@ -2287,7 +2227,7 @@ router.post("/:id/deleteSubdomain", function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON(`servers/${req.params.id}/server.json`);
   if (
-    hasAccess(token, account, req.params.id) &&
+    utils.hasAccess(token, account, req.params.id) &&
     fs.existsSync(`servers/${req.params.id}`) &&
     subdomain == server.subdomain
   ) {
@@ -2333,7 +2273,7 @@ router.post("/:id/allowAccount", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON(`servers/${req.params.id}/server.json`);
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     let array = [];
     if (server.allowedAccounts != undefined) {
       array = server.allowedAccounts.split(",");
@@ -2364,7 +2304,7 @@ router.get("/:id/backups", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON(`servers/${req.params.id}/server.json`);
-  if (hasAccess(token, account, req.params.id)) {
+  if (utils.hasAccess(token, account, req.params.id)) {
     if (fs.existsSync(`backups/${req.params.id}/`)) {
       try {
         res.status(200).json(backups.getBackupSlots(req.params.id));
@@ -2412,49 +2352,6 @@ router.get("/:id/backup/:timestamp", function (req, res) {
   }
 });
 
-function hasAccess(token, account, id) {
-  let server = readJSON(`servers/${id}/server.json`);
-  if (!enableAuth) return true;
-  let accountOwner = token === account.token;
-  let serverOwner = server.accountId == account.accountId;
-  let allowedAccount = false;
-  if (server.allowedAccounts !== undefined) {
-    allowedAccount = server.allowedAccounts.includes(account.accountId);
-  }
 
-  return accountOwner && (serverOwner || allowedAccount);
-}
-
-function sanitizePath(userInput) {
-  // Step 1: Block null bytes (common in attacks)
-  if (userInput.includes("\0")) {
-    console.log("null byte blocked: " + userInput);
-    return "invalid";
-  }
-
-  // Step 2: Normalize the path to resolve `..` and `.`
-  const normalized = path.normalize(userInput);
-
-  // Step 3: Split into parts and filter out traversal attempts
-  const parts = normalized.split(path.sep); // Handles OS-specific separators
-  const filteredParts = parts.filter((part) => {
-    // Reject empty parts (e.g., from leading/trailing slashes)
-    if (part === "") return false;
-    // Block parent directory traversal
-    if (part === "..") return false;
-    return true;
-  });
-
-  // Step 4: Rebuild the sanitized path
-  const sanitized = filteredParts.join(path.sep);
-
-  // Step 5: Block absolute paths (e.g., /etc/passwd or C:\Windows)
-  if (path.isAbsolute(sanitized)) {
-    console.log("absolute path blocked: " + sanitized);
-    return "invalid";
-  }
-
-  return sanitized;
-}
 
 module.exports = router;
