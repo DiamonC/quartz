@@ -277,6 +277,11 @@ function run(
     if (software == "snapshot") {
       javaVer = "21";
     }
+
+    if (server.javaVersion != undefined && !isNaN(server.javaVersion)) {
+      javaVer = server.javaVersion;
+    }
+
     let absolutePath = execSync("pwd").toString().trim();
     console.log("absolutePath: " + absolutePath);
 
@@ -487,6 +492,9 @@ function run(
     //it hasnt been installed yet and the config needs to modified
     let plugins = fs.readdirSync(folder + "/plugins");
 
+    if (server.javaVersion == undefined) {
+      server.javaVersion = javaVer;
+    }
 
     utils.writeJSON("servers/" + id + "/server.json", server);
 
