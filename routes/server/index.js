@@ -956,7 +956,8 @@ router.get(`/:id/getInfo`, function (req, res) {
     }
 
     let automaticStartup = false;
-    if (server.allowedAccounts == undefined) {
+try {
+      if (server.allowedAccounts == undefined) {
       server.allowedAccounts = "";
     }
     //if allowedAccounts begins with a , remove it
@@ -973,6 +974,10 @@ router.get(`/:id/getInfo`, function (req, res) {
         allowedAccounts.push(account[0] + ":" + account[1].split(":")[1]);
       }
     }
+} catch (err) {
+  console.log(err);
+  allowedAccounts = [];
+}
     
     res.status(200).json({
       msg: `Success: Got server info`,
