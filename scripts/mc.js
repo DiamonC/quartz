@@ -1095,7 +1095,14 @@ function run(
     });
 
   } catch (e) {
-    console.log(e);
+    console.log(e.message);
+    terminalOutput[id] =
+      "Server failed to start. Here is the error message:\n\n"+e.message+"\n"+e.stack;
+    for (i in e.message.split("\n")) {
+      let item = e.message.split("\n")[i];
+      if (item.includes("no such file or directory, open")) terminalOutput[id] = "[Error]: Missing file "+ item.split("y, open ")[1];
+    }
+    states[id] = "false";
   }
 }
 function stop(id) {
