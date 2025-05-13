@@ -24,6 +24,7 @@ const portOffset = 10000;
 const idOffset = parseInt(config.idOffset);
 const stats = require("../../scripts/stats.js");
 const backups = require("../../scripts/backups.js");
+const security = require("../../scripts/security.js");
 
 function writeServer(
   id,
@@ -2092,8 +2093,8 @@ router.get("/:id/backup/:timestamp", function (req, res) {
 
   if (fs.existsSync(`backups/${req.params.id}/${req.params.timestamp}.zip`)) {
     console.log(req.query.key);
-    console.log(backups.getBackupKey(req.params.id));
-    if (req.query.key == backups.getBackupKey(req.params.id)) {
+    console.log(security.getFileAccessKey(req.params.id));
+    if (req.query.key == security.getFileAccessKey(req.params.id)) {
       try {
         res.setHeader("Content-Type", "application/zip");
         res.setHeader(

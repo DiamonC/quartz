@@ -3,6 +3,8 @@ const { promisify } = require("util");
 const execPromise = promisify(exec);
 const fs = require("fs");
 const { ref } = require("process");
+const crypto = require("crypto");
+const security = require("./security");
 
 const servers = [];
 
@@ -10,12 +12,10 @@ if (!fs.existsSync("./backups")) {
   fs.mkdirSync("./backups");
 }
 
-let backupKeys = [];
-let serversFolder = fs.readdirSync("./servers");
 
 
 function cycle() {
-  refreshKeys();
+
   let serverFolderItems = fs.readdirSync("./servers");
   for (let i = 0; i < serverFolderItems.length; i++) {
     if (!isNaN(serverFolderItems[i])) {
@@ -98,19 +98,6 @@ setTimeout(() => {
   }, 5000);
 }
 
-function refreshKeys() {
-  backupKeys = [];
-  serversFolder = fs.readdirSync("./servers");
-  for (let i = 0; i < serversFolder.length; i++) {
-    if (!isNaN(serversFolder[i])) {
-      backupKeys.push({
-        serverId: serversFolder[i],
-        key: crypto.randomBytes(10).toString("hex"),
-      });
-    }
-  }
-}
-
 //get the time and make it so it backs up every day at 12am, 6am, 12pm and 6pm uTC
 function scheduleCycleAtUTC(hoursArray) {
   const now = new Date();
@@ -167,7 +154,7 @@ function getBackupSlots(serverId) {
       id: serverId,
       timestamp: timestamp,
       size: fs.statSync(`./backups/${serverId}/${filename}`).size,
-      key: backupKeys.find((key) => key.serverId == serverId).key,
+      key: security.getFileAccessKey(serverId),
     });
   }
   backupSlots.sort((a, b) => a.timestamp - b.timestamp);
@@ -175,8 +162,5 @@ function getBackupSlots(serverId) {
   return backupSlots;
 }
 
-function getBackupKey(serverId) {
-  return backupKeys.find((key) => key.serverId == serverId).key;
-}
 
-module.exports = { getBackupSlots, getBackupKey, refreshKeys };
+module.exports = { getBackupSlots, };

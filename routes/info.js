@@ -10,6 +10,7 @@ const readJSON = require("../scripts/utils.js").readJSON;
 const enableAuth = JSON.parse(config.enableAuth);
 const stripeKey = config.stripeKey;
 const stripe = require("stripe")(stripeKey);
+const security = require("../scripts/security.js");
 
 router.get(`/servers`, function (req, res) {
   email = req.headers.username;
@@ -42,6 +43,7 @@ router.get(`/servers`, function (req, res) {
         );
         console.log(account.servers[i]);
         account.servers[i].state = f.getState(account.servers[i].id);
+        account.servers[i].fileAccessKey = security.getFileAccessKey(account.servers[i].id);
       } else {
         console.log("sever is not created yet");
         account.servers[i] = account.servers[i] + ":not created yet";
