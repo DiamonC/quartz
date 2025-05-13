@@ -799,7 +799,10 @@ router.post(`/:id/setInfo`, function (req, res) {
     let id = req.params.id;
     iconUrl = req.body.icon;
     desc = req.body.desc;
-
+    if (req.body.javaVersion != undefined) {
+      server.javaVersion = req.body.javaVersion;
+      writeJSON("servers/" + id + "/server.json", server);
+    }
     //setting description
     if (f.checkServer(id).software == "velocity") {
       var text = fs.readFileSync(`servers/${id}/velocity.toml`).toString();
