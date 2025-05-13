@@ -931,9 +931,7 @@ router.get(`/:id/getInfo`, function (req, res) {
           //cut quotes off of secret
           secret = secret.substring(1, secret.length - 1);
         }
-      } catch (err) {
-        console.log(err);
-      }
+
 
       let onlineMode = textByLine[
         textByLine.findIndex((line) => {
@@ -947,6 +945,9 @@ router.get(`/:id/getInfo`, function (req, res) {
         proxiesEnabled = false;
       } else {
         proxiesEnabled = true;
+      }
+            } catch (err) {
+        console.log(err);
       }
     }
 
@@ -972,7 +973,7 @@ router.get(`/:id/getInfo`, function (req, res) {
         allowedAccounts.push(account[0] + ":" + account[1].split(":")[1]);
       }
     }
-
+    
     res.status(200).json({
       msg: `Success: Got server info`,
       iconUrl: iconUrl,
@@ -981,6 +982,7 @@ router.get(`/:id/getInfo`, function (req, res) {
       proxiesEnabled: proxiesEnabled,
       automaticStartup: automaticStartup,
       allowedAccounts: allowedAccounts,
+      javaVersion: server.javaVersion,
     });
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
