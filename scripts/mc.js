@@ -917,8 +917,9 @@ function run(
         prefix + " " + args,
         { cwd: folder, stdio: ["pipe", "pipe", "pipe"], shell: true },
         (error, stdout, stderr) => {
-          terminalOutput[id] = stdout;
+          if (states[id] != "false") terminalOutput[id] = stdout;
           states[id] = "false";
+          console.log(error, stderr);
           console.log("setting status of " + id + " to false on line #8");
         }
       );
@@ -942,6 +943,15 @@ function run(
           ls.kill();
         }
       });
+ls.stderr.on("data", data => {
+  const text = data.toString("utf8");
+    if (states[id] != "false") { terminalOutput[id] = "[Crash]: " + text;
+      console.log(terminalOutput[id]);}
+    if (terminalOutput[id].includes("to the Docker daemon")) terminalOutput[id] = "[Crash]: Docker is not properly setup. Contact an admin.";
+
+  states[id] = "false";
+  console.log("setting status of " + id + " to false on line #10");
+});
 
       let count2 = 0;
       let intervalID = setInterval(() => {
@@ -957,9 +967,10 @@ function run(
         ls.stdin.write(terminalInput + "\n");
       });
       ls.on("exit", (code) => {
+                  if (states[id] != "false") terminalOutput[id] = out.join("\n");
         states[id] = "false";
         console.log("setting status of " + id + " to false on line #11");
-        terminalOutput[id] = out.join("\n");
+
         console.log(out);
         console.log("code");
         console.log(code)
