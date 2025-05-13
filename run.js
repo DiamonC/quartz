@@ -9,6 +9,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const files = require("./scripts/files.js");
 const scraper = require("./scripts/scraper.js");
+const security = require("./scripts/security.js");
 
 if (!fs.existsSync("config.txt")) {
   //migration from old way of storing settings to config.txt
@@ -671,7 +672,7 @@ process.stdin.on("data", (data) => {
       } catch (e) {
         console.log("Error refreshing ftp " + e);
       }
-      backups.refreshKeys();
+      security.refreshKeys();
       
       console.log("downloading latest jars and verifying subscriptions...");
       break;
@@ -774,7 +775,7 @@ const limiter = rateLimit({
   message: "Too many request from this IP",
 });
 
-const security = (req, res, next) => {
+/*const security = (req, res, next) => {
   if (req.url.includes("/accounts/")) {
     next();
   } else {
@@ -791,7 +792,7 @@ const security = (req, res, next) => {
       }
     }
   }
-};
+};*/
 // middlewares
 app.use(limiter, express.json(), cors());
 

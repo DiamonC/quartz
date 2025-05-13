@@ -76,4 +76,4 @@ function getFileAccessKey(serverId) {
   return fileAccessKeys.find((key) => key.serverId == serverId).key;
 }
 
-module.exports = { getFileAccessKey };
+module.exports = { getFileAccessKey, refreshKeys };
