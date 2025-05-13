@@ -4,11 +4,14 @@ var path = require('path');
 const { readJSON } = require('./utils');
 const crypto = require('crypto');
 const config = require('./utils').getConfig();
+const security = require('./security');
 var server;
 let users = [];
 let accountsFolder = fs.readdirSync('./accounts');
 
 let port = 10000 + parseInt(config.idOffset) + 99;
+
+
 
 
 
@@ -22,7 +25,7 @@ function startFtpServer() {
             if (data.servers != undefined && data.servers.length > 0) {
              for (let j = 0; j < data.servers.length; j++) {
                 let server = data.servers[j];
-                let tempToken = crypto.randomBytes(10).toString("hex");
+                let tempToken = security.getFileAccessKey(server);
                 if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
                 console.log(`Adding user ${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`);
                 users.push(`${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`); 

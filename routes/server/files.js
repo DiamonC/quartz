@@ -220,10 +220,10 @@ router.post("/rename", function (req, res) {
 });
 
 router.get("/download/:path", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
+  let email = req.query.username;
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
+  console.log(req.query.key, security.getFileAccessKey(req.params.id));
 if (req.query.key == security.getFileAccessKey(req.params.id)) {
     let path = utils.sanitizePath(req.params.path);
     if (utils.sanitizePath(req.params.path).includes("*")) {
