@@ -891,7 +891,7 @@ function run(
           });
           ls.stderr.on("data", data => {
   const text = data.toString("utf8");
-    if (states[id] != "false") { terminalOutput[id] = "[Crash]: " + text;
+    if (states[id] != "false") { terminalOutput[id]+= "\n" + text;
       console.log(terminalOutput[id]);}
     if (terminalOutput[id].includes("to the Docker daemon")) terminalOutput[id] = "[Crash]: Docker is not properly setup. Contact an admin.";
 
@@ -962,7 +962,7 @@ function run(
       });
 ls.stderr.on("data", data => {
   const text = data.toString("utf8");
-    if (states[id] != "false") { terminalOutput[id] = "[Crash]: " + text;
+    if (states[id] != "false") { terminalOutput[id] += "\n" + text;
       console.log(terminalOutput[id]);}
     if (terminalOutput[id].includes("to the Docker daemon")) terminalOutput[id] = "[Crash]: Docker is not properly setup. Contact an admin.";
 
