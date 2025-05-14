@@ -141,6 +141,8 @@ function run(
   modpackVersionID
 ) {
   try {
+
+    
     if (version != undefined && version.includes(" ")) {
       version = version.split(" ").join("*");
     }
@@ -161,6 +163,8 @@ function run(
     let server = readJSON("servers/" + id + "/server.json");
     let out = [];
     states[id] = "starting";
+
+    
 
     // i isNew is undefined, set it to true
     if (isNew == undefined) {
@@ -193,6 +197,30 @@ function run(
         }
       }
     }
+
+        let count = 0;
+    //check if server is over storage limit
+    let serverStorageLimit = 10;
+    if (config.plus == server.productID) {
+      serverStorageLimit = 15;
+    } else if (config.premium == server.productID) {
+      serverStorageLimit = 20;
+    }
+
+    let size = files.folderSizeRecursive(folder);
+      //convert size to gb
+      size = size / 1000000000;
+          console.log("checking storage" + size)
+      if (size > serverStorageLimit) {
+        states[id] = "false";
+        console.log("setting status of " + id + " to false on line #12");
+
+        throw new Error(
+          "Server is over storage limit."
+        );
+      }
+    
+
     let allocatedRAM;
     if (config.basic == server.productID) {
       allocatedRAM = 4;
@@ -1098,28 +1126,7 @@ ls.stderr.on("data", data => {
       );
     }
 
-    let count = 0;
-    //check if server is over storage limit
-    let serverStorageLimit = 10;
-    if (config.plus == server.productID) {
-      serverStorageLimit = 15;
-    } else if (config.premium == server.productID) {
-      serverStorageLimit = 20;
-    }
-      
-    files.folderSizeRecursive(folder, (size) => {
-      //convert size to gb
-      size = size / 1000000000;
-      if (size > serverStorageLimit) {
-        states[id] = "false";
-        console.log("setting status of " + id + " to false on line #12");
 
-        terminalOutput[id] =
-          "Error: Server storage limit exceeded.";
-        killObstructingProcess(parseInt(id));
-        ls.kill();
-      }
-    });
 
   } catch (e) {
     console.log(e.message);
