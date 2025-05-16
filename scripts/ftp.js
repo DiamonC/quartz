@@ -102,6 +102,7 @@ function startFtpServer() {
 
 function getTempToken(username) {
     console.log("Getting temp token for user: " + username);
+    console.log("Users: " + users);
     console.log(users.find(user => user.startsWith(username)));
   return users.find(user => user.startsWith(username)).split(':')[1];
 }
