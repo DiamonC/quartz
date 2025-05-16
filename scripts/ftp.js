@@ -22,15 +22,15 @@ function startFtpServer() {
         let account = accountsFolder[i];
         if (account.endsWith('.json')) {
             let data = readJSON(`./accounts/${account}`);
-                            console.log("Account ID: " + account);
             if (data.servers != undefined && data.servers.length > 0) {
              for (let j = 0; j < data.servers.length; j++) {
-
-                let server = data.servers[j];
+                if (!isNaN(data.servers[j])) {
+                    let server = data.servers[j];
                 let tempToken = security.getFileAccessKey(server);
                 if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
                 console.log(`Adding user ${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`);
                 users.push(`${data.accountId.slice(0, 6)}.${server}:${tempToken}:/home/sysadmin/quartz/servers/${server}/:${server}`); 
+                }
              }
             }
         }
@@ -103,9 +103,6 @@ function startFtpServer() {
 }
 
 function getTempToken(username) {
-    console.log("Getting temp token for user: " + username);
-    console.log("Users: " + users);
-    console.log(users.find(user => user.startsWith(username)));
   return users.find(user => user.startsWith(username)).split(':')[1];
 }
 
