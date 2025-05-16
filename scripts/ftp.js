@@ -22,9 +22,10 @@ function startFtpServer() {
         let account = accountsFolder[i];
         if (account.endsWith('.json')) {
             let data = readJSON(`./accounts/${account}`);
+                            console.log("Account ID: " + account);
             if (data.servers != undefined && data.servers.length > 0) {
              for (let j = 0; j < data.servers.length; j++) {
-                console.log("Account ID: " + data.accountId);
+
                 let server = data.servers[j];
                 let tempToken = security.getFileAccessKey(server);
                 if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
