@@ -24,7 +24,7 @@ function startFtpServer() {
             let data = readJSON(`./accounts/${account}`);
             if (data.servers != undefined && data.servers.length > 0) {
              for (let j = 0; j < data.servers.length; j++) {
-                if (!isNaN(data.servers[j])) {
+                if (fs.existsSync(`./servers/${data.servers[j]}/server.json`)) {
                     let server = data.servers[j];
                 let tempToken = security.getFileAccessKey(server);
                 if (data.accountId.includes("acc_")) data.accountId = data.accountId.replace("acc_", "");
