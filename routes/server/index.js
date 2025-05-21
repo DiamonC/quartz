@@ -790,7 +790,7 @@ router.post(`/new/:id`, function (req, res) {
     res.status(500).send({ error: err });
   }
 });
-router.post(`/:id/setInfo`, function (req, res) {
+router.post(`/:id/settings`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -890,7 +890,7 @@ router.post(`/:id/setInfo`, function (req, res) {
   }
 });
 
-router.get(`/:id/getInfo`, function (req, res) {
+router.get(`/:id/settings`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
