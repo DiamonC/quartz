@@ -347,4 +347,92 @@ router.get("/", function (req, res) {
   }
 });
 
+router.get("/read/:path", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON("servers/" + req.params.id + "/server.json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let path = utils.sanitizePath(req.params.path).split("*").join("/");
+    if (fs.existsSync(`servers/${req.params.id}/${path}`)) {
+      if (fs.lstatSync(`servers/${req.params.id}/${path}`).isDirectory()) {
+        res.status(200).json({
+          content:
+            "This is a directory, not a file. Listing files: " +
+            fs.readdirSync(`servers/${req.params.id}/${path}`),
+        });
+      } else {
+        let extension = path.split(".")[path.split(".").length - 1];
+
+        if (extension == "png" || extension == "jepg" || extension == "svg") {
+          res
+            .status(200)
+            .json({ content: "Image files can't be edited or viewed." });
+        } else if (
+          extension == "jar" ||
+          extension == "exe" ||
+          extension == "sh"
+        ) {
+          res
+            .status(200)
+            .json({ content: "Binary files can't be edited or viewed." });
+        } else if (
+          fs.statSync(`servers/${req.params.id}/${path}`).size > 500000
+        ) {
+          res.status(200).json({ content: "File too large." });
+        } else {
+
+          res.status(200).json({
+            content: fs.readFileSync(
+              `servers/${req.params.id}/${path}`,
+              "utf8"
+            ),
+          });
+        }
+      }
+    } else {
+      res.status(200).json([]);
+    }
+  }
+});
+
+router.post("/write/:path", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON("servers/" + req.params.id + "/server.json");
+  if (
+    utils.hasAccess(token, account, req.params.id) &&
+    fs.existsSync(`servers/${req.params.id}/`)
+  ) {
+    let path = utils.sanitizePath(req.params.path);
+    if (utils.sanitizePath(req.params.path).includes("*")) {
+      path = utils.sanitizePath(req.params.path).split("*").join("/");
+    }
+    let extension = path.split(".")[path.split(".").length - 1];
+    let filename = path.split("/")[path.split("/").length - 1];
+    if (
+      req.body.content !== undefined &&
+      fs.existsSync(`servers/${req.params.id}/${path}`) &&
+      filename != "server.json" &&
+      filename != "modrinth.index.json" &&
+      filename != "curseforge.index.json" &&
+      fs.statSync(`servers/${req.params.id}/${path}`).size <= 500000
+    ) {
+
+      
+      let filename = fs.statSync(`servers/${req.params.id}/${path}`).mtimeMs;
+      console.log(filename);
+
+
+      fs.writeFileSync(`servers/${req.params.id}/${path}`, req.body.content);
+      res.status(200).json({ msg: "Done" });
+    } else {
+      res.status(400).json({ msg: "Invalid request." });
+    }
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
+
 module.exports = router;

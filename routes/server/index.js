@@ -1624,69 +1624,7 @@ router.delete("/:id/proxy/servers", function (req, res) {
   }
 });
 
-router.get("/:id/file/:path", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (utils.hasAccess(token, account, req.params.id)) {
-    let path = utils.sanitizePath(req.params.path).split("*").join("/");
-    if (fs.existsSync(`servers/${req.params.id}/${path}`)) {
-      if (fs.lstatSync(`servers/${req.params.id}/${path}`).isDirectory()) {
-        res.status(200).json({
-          content:
-            "This is a directory, not a file. Listing files: " +
-            fs.readdirSync(`servers/${req.params.id}/${path}`),
-        });
-      } else {
-        let extension = path.split(".")[path.split(".").length - 1];
 
-        if (extension == "png" || extension == "jepg" || extension == "svg") {
-          res
-            .status(200)
-            .json({ content: "Image files can't be edited or viewed." });
-        } else if (
-          extension == "jar" ||
-          extension == "exe" ||
-          extension == "sh"
-        ) {
-          res
-            .status(200)
-            .json({ content: "Binary files can't be edited or viewed." });
-        } else if (
-          fs.statSync(`servers/${req.params.id}/${path}`).size > 500000
-        ) {
-          res.status(200).json({ content: "File too large." });
-        } else {
-          let versionsArray = [];
-          //get the file's previous versions
-          if (
-            fs.existsSync(
-              `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
-                req.params.path
-              )}`
-            )
-          ) {
-            versionsArray = fs.readdirSync(
-              `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
-                req.params.path
-              )}`
-            );
-          }
-          res.status(200).json({
-            content: fs.readFileSync(
-              `servers/${req.params.id}/${path}`,
-              "utf8"
-            ),
-            versions: versionsArray,
-          });
-        }
-      }
-    } else {
-      res.status(200).json([]);
-    }
-  }
-});
 
 //route to download main folder
 router.get("/:id/download", function (req, res) {
@@ -1725,75 +1663,7 @@ router.get("/:id/download", function (req, res) {
   }
 });
 
-router.post("/:id/file/:path", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (
-    utils.hasAccess(token, account, req.params.id) &&
-    fs.existsSync(`servers/${req.params.id}/`)
-  ) {
-    let path = utils.sanitizePath(req.params.path);
-    if (utils.sanitizePath(req.params.path).includes("*")) {
-      path = utils.sanitizePath(req.params.path).split("*").join("/");
-    }
-    let extension = path.split(".")[path.split(".").length - 1];
-    let filename = path.split("/")[path.split("/").length - 1];
-    if (
-      req.body.content !== undefined &&
-      fs.existsSync(`servers/${req.params.id}/${path}`) &&
-      filename != "server.json" &&
-      filename != "modrinth.index.json" &&
-      filename != "curseforge.index.json" &&
-      fs.statSync(`servers/${req.params.id}/${path}`).size <= 500000
-    ) {
-      if (
-        !fs.existsSync(
-          `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
-            req.params.path
-          )}`
-        )
-      ) {
-        fs.mkdirSync(
-          `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
-            req.params.path
-          )}`
-        );
-      }
-      //write only the difference between the old file and the new file
-      let oldFile = fs.readFileSync(`servers/${req.params.id}/${path}`, "utf8");
-      let newFile = req.body.content;
-      let diff = JsDiff.diffLines(oldFile, newFile);
-      let diffString = "";
-      diff.forEach((part) => {
-        if (part.added) {
-          diffString += `+${part.value}`;
-        } else if (part.removed) {
-          diffString += `-${part.value}`;
-        } else {
-          diffString += part.value;
-        }
-      });
-      console.log(diffString);
-      let filename = fs.statSync(`servers/${req.params.id}/${path}`).mtimeMs;
-      console.log(filename);
-      fs.writeFileSync(
-        `servers/${req.params.id}/.fileVersions/${utils.sanitizePath(
-          req.params.path
-        )}/${filename}`,
-        diffString
-      );
 
-      fs.writeFileSync(`servers/${req.params.id}/${path}`, req.body.content);
-      res.status(200).json({ msg: "Done" });
-    } else {
-      res.status(400).json({ msg: "Invalid request." });
-    }
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
-  }
-});
 
 router.post("/:id/rename/", function (req, res) {
   let email = req.headers.username;
