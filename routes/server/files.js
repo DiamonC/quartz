@@ -220,9 +220,6 @@ router.post("/rename", function (req, res) {
 });
 
 router.get("/download/:path", function (req, res) {
-  let email = req.query.username;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
   console.log(req.query.key, security.getFileAccessKey(req.params.id));
 if (req.query.key == security.getFileAccessKey(req.params.id)) {
     let path = utils.sanitizePath(req.params.path);
@@ -437,11 +434,8 @@ router.post("/write/:path", function (req, res) {
 
 //route to download main folder
 router.get("/mainfolder", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (utils.hasAccess(token, account, req.params.id)) {
+
+  if (req.query.key == security.getFileAccessKey(req.params.id)) {
     if (fs.existsSync(`servers/${req.params.id}/`)) {
       exec(
         `zip -r -q -X ${req.params.id}.zip .`,
