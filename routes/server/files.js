@@ -252,10 +252,12 @@ if (req.query.key == security.getFileAccessKey(req.params.id)) {
                 `servers/${req.params.id}/${utils.sanitizePath(req.params.path)}.zip`,
                 `${utils.sanitizePath(req.params.path)}.zip`,
                 () => {
-                  //delete the zip file
+try {
+                    //delete the zip file
                   fs.unlinkSync(
                     `servers/${req.params.id}/${path.split("/").join("*")}.zip`
                   );
+} catch (e) { console.log(e); }
                 }
               );
           }
