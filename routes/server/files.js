@@ -230,9 +230,11 @@ if (req.query.key == security.getFileAccessKey(req.params.id)) {
       if (fs.statSync(`servers/${req.params.id}/${path}`).isDirectory()) {
         //zip the folder and send it to the client
         console.log("unzipping");
-        console.log(`zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`);
+        //zip -r -q -X config.zip config/* -x config
+
+        console.log(`zip -r -q -X ./${path.split("/").join("*")}.zip -x "${path}"`);
         exec(
-          `zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`,
+          `zip -r -q -X ./${path.split("/").join("*")}.zip -x "${path}"`,
           { cwd: `servers/${req.params.id}/` },
           (err) => {
             res.setHeader("Content-Type", "application/zip");
