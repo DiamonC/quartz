@@ -18,7 +18,7 @@ const enableVirusScan = JSON.parse(config.enableVirusScan);
 const backups = require("../../scripts/backups.js");
 const security = require("../../scripts/security.js");
 
-router.get("/:id/proxy/info", function (req, res) {
+router.get("/info", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -51,7 +51,7 @@ router.get("/:id/proxy/info", function (req, res) {
   }
 });
 
-router.post("/:id/proxy/info", function (req, res) {
+router.post("/info", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -78,7 +78,7 @@ router.post("/:id/proxy/info", function (req, res) {
   }
 });
 
-router.get("/:id/proxy/servers", function (req, res) {
+router.get("/servers", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -121,7 +121,7 @@ router.get("/:id/proxy/servers", function (req, res) {
   }
 });
 
-router.post("/:id/proxy/servers", function (req, res) {
+router.post("/servers", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
@@ -217,7 +217,7 @@ router.post("/:id/proxy/servers", function (req, res) {
   }
 });
 
-router.delete("/:id/proxy/servers", function (req, res) {
+router.delete("/servers", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
