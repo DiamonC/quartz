@@ -232,9 +232,9 @@ if (req.query.key == security.getFileAccessKey(req.params.id)) {
         console.log("unzipping");
         //zip -r -q -X config.zip config/* -x config
 
-        console.log(`zip -r -q -X ./${path.split("/").join("*")}.zip -x "${path}"`);
+        console.log(`zip -r -q -X ./${path.split("/").join("*")}.zip "${path}" -x "${path}"`);
         exec(
-          `zip -r -q -X ./${path.split("/").join("*")}.zip -x "${path}"`,
+          `zip -r -q -X ./${path.split("/").join("*")}.zip "${path}" -x "${path}"`,
           { cwd: `servers/${req.params.id}/` },
           (err) => {
             res.setHeader("Content-Type", "application/zip");
