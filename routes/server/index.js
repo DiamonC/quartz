@@ -1631,42 +1631,7 @@ router.delete("/:id/proxy/servers", function (req, res) {
 
 
 
-//route to download main folder
-router.get("/:id/download", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
-  if (utils.hasAccess(token, account, req.params.id)) {
-    if (fs.existsSync(`servers/${req.params.id}/`)) {
-      exec(
-        `zip -r -q -X ${req.params.id}.zip .`,
-        { cwd: `servers/${req.params.id}` },
-        (err) => {
-          res.setHeader("Content-Type", "application/zip");
 
-          res.setHeader(
-            "Content-Disposition",
-            `attachment; filename=${req.params.id}.zip`
-          );
-
-          res
-            .status(200)
-            .download(
-              `servers/${req.params.id}/${req.params.id}.zip`,
-              `${req.params.id}.zip`,
-              () => {
-                //delete the zip file
-                fs.unlinkSync(`servers/${req.params.id}/${req.params.id}.zip`);
-              }
-            );
-        }
-      );
-    } else {
-      res.status(400).json({ msg: "Invalid request." });
-    }
-  }
-});
 
 router.get("/:id/storageInfo", function (req, res) {
   let email = req.headers.username;
