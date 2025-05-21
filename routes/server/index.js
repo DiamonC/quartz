@@ -799,6 +799,11 @@ router.post(`/:id/setInfo`, function (req, res) {
     let id = req.params.id;
     iconUrl = req.body.icon;
     desc = req.body.desc;
+
+    if (req.body.newName != undefined && req.body.newName != "") {
+      server.name = req.body.newName;
+    }
+
     if (req.body.javaVersion != undefined) {
       server.javaVersion = req.body.javaVersion;
       writeJSON("servers/" + id + "/server.json", server);
@@ -1660,29 +1665,6 @@ router.get("/:id/download", function (req, res) {
     } else {
       res.status(400).json({ msg: "Invalid request." });
     }
-  }
-});
-
-
-
-router.post("/:id/rename/", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  if (
-    utils.hasAccess(token, account, req.params.id) &&
-    fs.existsSync(`servers/${req.params.id}/`)
-  ) {
-    let server = readJSON(`servers/${req.params.id}/server.json`);
-    server.name = req.query.newName;
-    writeJSON(`servers/${req.params.id}/server.json`, server);
-
-    let account = readJSON("accounts/" + email + ".json");
-
-    writeJSON(`accounts/${email}.json`, account);
-    res.status(200).json({ msg: "Done" });
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
   }
 });
 
