@@ -27,3 +27,4 @@ config.txt
 bun.lockb
 assets/terminal-log.txt
 crashLog.txt
+/logs
