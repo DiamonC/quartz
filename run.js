@@ -770,7 +770,7 @@ process.stdout.write = (function (write) {
 //this logs the terminal every 5 minutes
 setInterval(() => {
   if (stdout != "") {
-    fs.writeFileSync("assets/terminal-log.txt", stdout);
+    fs.writeFileSync("logs/terminal.txt", stdout);
   }
 }, 1000 * 60 * 5);
 
