@@ -323,7 +323,8 @@ function downloadJars(type) {
           }
         }
           }
-          if (fs.existsSync(`assets/jars/${newFilename}`)) {
+          try {
+                      if (fs.existsSync(`assets/jars/${newFilename}`)) {
             fs.unlinkSync(`assets/jars/${newFilename}`);
           }
           fs.copyFileSync(
@@ -336,6 +337,15 @@ function downloadJars(type) {
           for (let j in downloads) {
             if (downloads[j].filename == filename) {
               downloads[j].status = "downloaded";
+            }
+          }
+          } catch (e) {
+            console.log("Error copying file: " + e);
+            //change the status of the download to failed
+            for (let j in downloads) {
+              if (downloads[j].filename == filename) {
+                downloads[j].status = "failed";
+              }
             }
           }
         });
