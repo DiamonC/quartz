@@ -87,6 +87,10 @@ if (!fs.existsSync("config.txt")) {
   }
 }
 
+if (!fs.existsSync("logs")) {
+  fs.mkdirSync("logs");
+}
+
 
 const f = require("./scripts/mc.js");
 const backups = require("./scripts/backups.js");
