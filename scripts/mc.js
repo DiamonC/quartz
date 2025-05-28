@@ -1026,8 +1026,8 @@ ls.stderr.on("data", data => {
         console.log(code)
         console.log(terminalOutput[id]);
 
-        if (!fs.existsSync("assets/crashLog.txt")) {
-          fs.writeFileSync("assets/crashLog.txt", "");
+        if (!fs.existsSync("logs/crash.txt")) {
+          fs.writeFileSync("logs/crash.txt", "");
         }
         if (
           !terminalOutput[id].includes("stop") &&
@@ -1036,7 +1036,7 @@ ls.stderr.on("data", data => {
           !terminalOutput[id].includes("Server stopped")
         ) {
           fs.appendFileSync(
-            "assets/crashLog.txt", Date.now().toString() + "\n" + 
+            "logs/crash.txt", Date.now().toString() + "\n" + 
             out[out.length-1] + "\n"
           );
         }

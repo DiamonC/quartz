@@ -220,9 +220,6 @@ router.post("/rename", function (req, res) {
 });
 
 router.get("/download/:path", function (req, res) {
-  let email = req.query.username;
-  let account = readJSON("accounts/" + email + ".json");
-  let server = readJSON("servers/" + req.params.id + "/server.json");
   console.log(req.query.key, security.getFileAccessKey(req.params.id));
 if (req.query.key == security.getFileAccessKey(req.params.id)) {
     let path = utils.sanitizePath(req.params.path);
@@ -233,9 +230,11 @@ if (req.query.key == security.getFileAccessKey(req.params.id)) {
       if (fs.statSync(`servers/${req.params.id}/${path}`).isDirectory()) {
         //zip the folder and send it to the client
         console.log("unzipping");
-        console.log(`zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`);
+        //zip -r -q -X config.zip config/* -x config
+
+        console.log(`zip -r -q -X ./${path.split("/").join("*")}.zip "${path}" -x "${path}"`);
         exec(
-          `zip -r -q -X -j ./${path.split("/").join("*")}.zip "${path}"`,
+          `zip -r -q -X ./${path.split("/").join("*")}.zip "${path}" -x "${path}"`,
           { cwd: `servers/${req.params.id}/` },
           (err) => {
             res.setHeader("Content-Type", "application/zip");
@@ -255,10 +254,12 @@ if (req.query.key == security.getFileAccessKey(req.params.id)) {
                 `servers/${req.params.id}/${utils.sanitizePath(req.params.path)}.zip`,
                 `${utils.sanitizePath(req.params.path)}.zip`,
                 () => {
-                  //delete the zip file
+try {
+                    //delete the zip file
                   fs.unlinkSync(
                     `servers/${req.params.id}/${path.split("/").join("*")}.zip`
                   );
+} catch (e) { console.log(e); }
                 }
               );
           }
@@ -343,6 +344,128 @@ router.get("/", function (req, res) {
         .json(files.readFilesRecursive(`servers/${req.params.id}/`));
     } else {
       res.status(200).json([]);
+    }
+  }
+});
+
+router.get("/read/:path", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON("servers/" + req.params.id + "/server.json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let path = utils.sanitizePath(req.params.path).split("*").join("/");
+    if (fs.existsSync(`servers/${req.params.id}/${path}`)) {
+      if (fs.lstatSync(`servers/${req.params.id}/${path}`).isDirectory()) {
+        res.status(200).json({
+          content:
+            "This is a directory, not a file. Listing files: " +
+            fs.readdirSync(`servers/${req.params.id}/${path}`),
+        });
+      } else {
+        let extension = path.split(".")[path.split(".").length - 1];
+
+        if (extension == "png" || extension == "jepg" || extension == "svg") {
+          res
+            .status(200)
+            .json({ content: "Image files can't be edited or viewed." });
+        } else if (
+          extension == "jar" ||
+          extension == "exe" ||
+          extension == "sh"
+        ) {
+          res
+            .status(200)
+            .json({ content: "Binary files can't be edited or viewed." });
+        } else if (
+          fs.statSync(`servers/${req.params.id}/${path}`).size > 500000
+        ) {
+          res.status(200).json({ content: "File too large." });
+        } else {
+
+          res.status(200).json({
+            content: fs.readFileSync(
+              `servers/${req.params.id}/${path}`,
+              "utf8"
+            ),
+          });
+        }
+      }
+    } else {
+      res.status(200).json([]);
+    }
+  }
+});
+
+router.post("/write/:path", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON("servers/" + req.params.id + "/server.json");
+  if (
+    utils.hasAccess(token, account, req.params.id) &&
+    fs.existsSync(`servers/${req.params.id}/`)
+  ) {
+    let path = utils.sanitizePath(req.params.path);
+    if (utils.sanitizePath(req.params.path).includes("*")) {
+      path = utils.sanitizePath(req.params.path).split("*").join("/");
+    }
+    let extension = path.split(".")[path.split(".").length - 1];
+    let filename = path.split("/")[path.split("/").length - 1];
+    if (
+      req.body.content !== undefined &&
+      fs.existsSync(`servers/${req.params.id}/${path}`) &&
+      filename != "server.json" &&
+      filename != "modrinth.index.json" &&
+      filename != "curseforge.index.json" &&
+      fs.statSync(`servers/${req.params.id}/${path}`).size <= 500000
+    ) {
+
+      
+      let filename = fs.statSync(`servers/${req.params.id}/${path}`).mtimeMs;
+      console.log(filename);
+
+
+      fs.writeFileSync(`servers/${req.params.id}/${path}`, req.body.content);
+      res.status(200).json({ msg: "Done" });
+    } else {
+      res.status(400).json({ msg: "Invalid request." });
+    }
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
+
+//route to download main folder
+router.get("/mainfolder", function (req, res) {
+
+  if (req.query.key == security.getFileAccessKey(req.params.id)) {
+    if (fs.existsSync(`servers/${req.params.id}/`)) {
+      exec(
+        `zip -r -q -X ${req.params.id}.zip .`,
+        { cwd: `servers/${req.params.id}` },
+        (err) => {
+          res.setHeader("Content-Type", "application/zip");
+
+          res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=${req.params.id}.zip`
+          );
+
+          res
+            .status(200)
+            .download(
+              `servers/${req.params.id}/${req.params.id}.zip`,
+              `${req.params.id}.zip`,
+              () => {
+                //delete the zip file
+                fs.unlinkSync(`servers/${req.params.id}/${req.params.id}.zip`);
+              }
+            );
+        }
+      );
+    } else {
+      res.status(400).json({ msg: "Invalid request." });
     }
   }
 });

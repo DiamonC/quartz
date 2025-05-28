@@ -24,6 +24,7 @@ function downloadAsync(file, url, callback) {
       console.log("Error: " + e);
       console.log("stdout: " + stdout);
       console.log("stderr: " + stderr);
+      callback("error");
     }
   });
 }
