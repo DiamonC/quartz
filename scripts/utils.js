@@ -71,6 +71,7 @@ function hasAccess(token, account, id) {
   if (server.allowedAccounts !== undefined) {
     allowedAccount = server.allowedAccounts.includes(account.accountId);
   }
+  if (token.includes("62d")) console.log("Checking access for account: " + account);
 
   return accountOwner && (serverOwner || allowedAccount);
 }
