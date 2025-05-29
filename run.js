@@ -855,7 +855,6 @@ app.use(limiter, express.json(), cors());
 app.use("/server", require("./routes/server/index.js"));
 app.use("/checkout", require("./routes/checkout"));
 app.use("/info", require("./routes/info"));
-app.use("/terminal", require("./routes/terminal"));
 app.use("/accounts", require("./routes/accounts"));
 app.use("/curseforge", require("./routes/curseforge"));
 app.use("/translate", require("./routes/translate"));

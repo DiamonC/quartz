@@ -1,10 +1,25 @@
 const express = require("express");
-const router = express.Router();
-const f = require("../scripts/mc.js");
-const config = require("../scripts/utils.js").getConfig();
-const readJSON = require("../scripts/utils.js").readJSON;
+const router = express.Router({ mergeParams: true }); 
+const files = require("../../scripts/files.js");
+const f = require("../../scripts/mc.js");
+const path = require("path");
+const utils = require("../../scripts/utils.js");
+const multer = require("multer");
+const upload = multer({ dest: "assets/uploads/" });
+const readJSON = require("../../scripts/utils.js").readJSON;
+const data = readJSON("assets/data.json");
+const JsDiff = require("diff");
+const config = require("../../scripts/utils.js").getConfig();
+const ftp = require("../../scripts/ftp.js");
+const exec = require("child_process").exec;
+const fs = require("fs");
+const writeJSON = require("../../scripts/utils.js").writeJSON;
+const enableVirusScan = JSON.parse(config.enableVirusScan);
+const backups = require("../../scripts/backups.js");
+const security = require("../../scripts/security.js");
 const enableAuth = JSON.parse(config.enableAuth);
-router.get("/:id", (req, res) => {
+
+router.get("/", (req, res) => {
   email = req.headers.username;
   token = req.headers.token;
   account = readJSON("accounts/" + email + ".json");
@@ -16,7 +31,7 @@ router.get("/:id", (req, res) => {
   }
 });
 
-router.post("/:id", (req, res) => {
+router.post("/", (req, res) => {
   email = req.headers.username;
   token = req.headers.token;
   account = readJSON("accounts/" + email + ".json");
@@ -30,6 +45,7 @@ router.post("/:id", (req, res) => {
   }
 });
 
+
 function hasAccess(token, account, id) {
   let server = readJSON(`servers/${id}/server.json`);
   if (!enableAuth) return true;
@@ -42,6 +58,5 @@ function hasAccess(token, account, id) {
 
   return accountOwner && (serverOwner || allowedAccount);
 }
-
 
 module.exports = router;

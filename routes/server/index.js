@@ -67,6 +67,7 @@ function writeServer(
 
 router.use("/:id/files", require("./files.js"));
 router.use("/:id/proxy", require("./proxy.js"));
+router.use("/:id/terminal", require("./terminal.js"));
 router.use("/:id/settings", require("./settings.js"));
 
 
