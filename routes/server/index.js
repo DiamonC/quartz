@@ -240,7 +240,7 @@ router.post(`/:id/state/:state`, function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
   console.log("attempting to start server " + req.params.id);
-  console.log(token + " " + account.token);
+  console.log(token + " " + account.token + utils.hasAccess(token, account, req.params.id));
   if (utils.hasAccess(token, account, req.params.id)) {
     state = req.params.state;
     let id = req.params.id;
