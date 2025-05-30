@@ -217,7 +217,7 @@ fs.readdirSync("assets/uploads").forEach((file) => {
 const datajson = readJSON("./assets/data.json");
 if (Date.now() - datajson.lastUpdate > 1000 * 60 * 60 * 6) {
   downloadJars("partial");
-  verifySubscriptions();
+  checkSubscriptions();
   backup();
   refreshTempToken();
   removeUnusedAccounts();
@@ -227,7 +227,7 @@ setInterval(() => {
 }, 1000 * 60 * 60 * 2);
 setInterval(() => {
 
-  verifySubscriptions();
+  checkSubscriptions();
   backup();
   refreshTempToken();
   removeUnusedAccounts();
@@ -436,7 +436,7 @@ function backup() {
 
 
 
-function verifySubscriptions() {
+function checkSubscriptions() {
   //we wait 5 minutes to avoid the user of the terminal having a lag spike at startup
   setTimeout(() => {
     if (config.stripeKey != "" && config.enablePay) {
@@ -720,7 +720,7 @@ process.stdin.on("data", (data) => {
       break;
     case "refresh":
       downloadJars("full");
-      verifySubscriptions();
+      checkSubscriptions();
       refreshTempToken();
       removeUnusedAccounts();
       try {
@@ -863,6 +863,197 @@ app.use("/node", require("./routes/node"));
 const adminApp = express();
 const adminPort = process.env.ADMIN_PORT || 4001;
 
+function checkSubscriptions() {
+      let servers = fs.readdirSync("servers");
+      let data = [];
+      for (let i in servers) {
+        let owner = null;
+        let email = null;
+        try {
+          const serverId = servers[i];
+          let storage = 0;
+  
+          try {
+            storage = files.folderSizeRecursive("servers/" + serverId);
+          } catch (e) {
+            console.log(e);
+          }
+          if (fs.existsSync(`servers/${serverId}/server.json`)) {
+            let json = readJSON(`servers/${serverId}/server.json`);
+            if (json.adminServer == undefined || json.adminServer == false) {
+              const accountId = json.accountId;
+              fs.readdirSync("accounts").forEach((file) => {
+                const account = readJSON(`accounts/${file}`);
+                if (account.accountId == accountId) {
+                  owner = file;
+                  if (!file.includes("email:")) email = account.email;
+                  else email = file.split("email:")[1].split(".json")[0];
+                  data.push({
+                    serverId: servers[i],
+                    owner: owner,
+                    email: email,
+                    storage: storage,
+                  });
+                                        try {
+                        console.log("Getting customer for " + email);
+                        if (email != null && email != undefined) {
+                          stripe.customers.list(
+                            {
+                              limit: 100,
+                              email: email,
+                            },
+                            function (err, customers) {
+                              if (err) {
+                                console.log("err", err);
+                              } else {
+                                if (customers.data.length == 0) {
+                                  console.log(
+                                    "No customer found for " + email
+                                  );
+                                } else {
+                                  console.log(
+                                    "Customer found for " + email
+                                  );
+                                  //find item in data array
+                                  for (let j in data) {
+                                    
+                                    if (data[j].email == email) {
+                                                                            //redactions
+                                      customers.data.forEach((customer) => {
+                                        if (customer.address) {
+                                          customer.address = {
+                                            city: "REDACTED",
+                                            country: "REDACTED",
+                                            line1: "REDACTED",
+                                            line2: "REDACTED",
+                                            postal_code: "REDACTED",
+                                            state: "REDACTED",
+                                          };
+                                        }
+                                        //redact last name
+                                        if (customer.name) {
+                                          customer.name = customer.name.split(" ")[0] + " REDACTED";  
+                                        }
+                                        //redact phone number
+                                        if (customer.phone) {
+                                          customer.phone = "REDACTED";
+                                        }
+                                      });
+                                      data[j].subscriptions = customers.data;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          );
+                        }
+                    } catch (e) {
+                      console.log("Error getting customer for " + email);
+                      console.log(e);
+                    }
+                }
+              });
+            }
+          } else {
+            fs.readdirSync("accounts").forEach((file) => {
+              try {
+                let account = readJSON(`accounts/${file}`);
+  
+                if (
+                  account.servers.includes(serverId) ||
+                  account.servers.includes(parseInt(serverId))
+                ) {
+                  owner = file;
+                  if (!file.includes("email:")) email = account.email;
+                  else email = file.split("email:")[1].split(".json")[0];
+  
+                  data.push({
+                    serverId: servers[i],
+                    owner: owner,
+                    email: email,
+                    storage: storage,
+                  });
+                      try {
+                        console.log("Getting customer for " + email);
+                        if (email != null && email != undefined) {
+                          stripe.customers.list(
+                            {
+                              limit: 100,
+                              email: email,
+                            },
+                            function (err, customers) {
+                              if (err) {
+                                console.log("err", err);
+                              } else {
+                                if (customers.data.length == 0) {
+                                  console.log(
+                                    "No customer found for " + email
+                                  );
+                                } else {
+                                  console.log(
+                                    "Customer found for " + email
+                                  );
+                                  //find item in data array
+                                  for (let j in data) {
+                                    if (data[j].email == email) {
+                                      //redactions
+                                      customers.data.forEach((customer) => {
+                                        if (customer.address) {
+                                          customer.address = {
+                                            city: "REDACTED",
+                                            country: "REDACTED",
+                                            line1: "REDACTED",
+                                            line2: "REDACTED",
+                                            postal_code: "REDACTED",
+                                            state: "REDACTED",
+                                          };
+                                        }
+                                        //redact last name
+                                        if (customer.name) {
+                                          customer.name = customer.name.split(" ")[0] + " REDACTED";  
+                                        }
+                                        //redact phone number
+                                        if (customer.phone) {
+                                          customer.phone = "REDACTED";
+                                        }
+                                      });
+                                      data[j].subscriptions = customers.data;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          );
+                        }
+                    } catch (e) {
+                      console.log("Error getting customer for " + email);
+                      console.log(e);
+                    }
+                }
+              } catch (error) {
+                console.log("error scanning account " + file);
+                console.log(error);
+                data = [];
+              }
+            });
+          }
+        } catch {
+          console.log("error getting server owner");
+        }
+      }
+      setTimeout(() => {
+        console.log("Subscriptions 50% done checking.");
+      }
+      , 1000 * 20);  
+      setTimeout(() => {
+        fs.writeFileSync(
+          "logs/subscriptions.json",
+          JSON.stringify(data, null, 2)
+        );
+        console.log("Subscriptions checked and logged.");
+      }
+      , 1000 * 40);
+}
 
 
 // Admin-specific middleware stack
