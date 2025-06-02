@@ -927,6 +927,7 @@ function checkSubscriptions() {
                                           stripe.subscriptions.list(
                                             {
                                               customer: customers.data[k].id,
+                                              status: "all",
                                             },
                                             function (err, subscriptions) {
                                               console.log(subscriptions);
@@ -1014,6 +1015,7 @@ function checkSubscriptions() {
                                           stripe.subscriptions.list(
                                             {
                                               customer: customers.data[k].id,
+                                              status: "all",
                                             },
                                             function (err, subscriptions) {
                                               console.log(subscriptions);
