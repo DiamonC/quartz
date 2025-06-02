@@ -894,7 +894,7 @@ function checkSubscriptions() {
                     email: email,
                     storage: storage,
                   });
-                                        try {
+                      try {
                         console.log("Getting customer for " + email);
                         if (email != null && email != undefined) {
                           stripe.customers.list(
@@ -916,30 +916,37 @@ function checkSubscriptions() {
                                   );
                                   //find item in data array
                                   for (let j in data) {
-                                    
                                     if (data[j].email == email) {
-                                                                            //redactions
-                                      customers.data.forEach((customer) => {
-                                        if (customer.address) {
-                                          customer.address = {
-                                            city: "REDACTED",
-                                            country: "REDACTED",
-                                            line1: "REDACTED",
-                                            line2: "REDACTED",
-                                            postal_code: "REDACTED",
-                                            state: "REDACTED",
-                                          };
+                                      let subscriptionsA = [];
+
+                                      for (let k in customers.data) {
+                                        if (customers.data[k].id) {
+                                          let customerSubscriptions;
+                                          //get from stripe
+                                          console.log("Getting subscriptions for customer " + customers.data[k].id);
+                                          stripe.subscriptions.list(
+                                            {
+                                              customer: customers.data[k].id,
+                                            },
+                                            function (err, subscriptions) {
+                                              console.log(subscriptions);
+                                              if (err) {
+                                                console.log("Error getting subscriptions for customer " + customers.data[k].id);
+                                                console.log(err);
+                                              } else {
+                                                 customerSubscriptions = subscriptions.data;
+                                                for (let i in customerSubscriptions) {
+                                                  subscriptionsA.push(customerSubscriptions[i]);
+                                                }
+                                              }
+                                            }
+                                          );
                                         }
-                                        //redact last name
-                                        if (customer.name) {
-                                          customer.name = customer.name.split(" ")[0] + " REDACTED";  
-                                        }
-                                        //redact phone number
-                                        if (customer.phone) {
-                                          customer.phone = "REDACTED";
-                                        }
-                                      });
-                                      data[j].subscriptions = customers.data;
+                                      }
+                                      setTimeout(() => {
+                                        data[j].subscriptions = subscriptionsA;
+                                        
+                                      }, 1000 * 10);
                                     }
                                   }
                                 }
@@ -994,30 +1001,39 @@ function checkSubscriptions() {
                                     "Customer found for " + email
                                   );
                                   //find item in data array
+                                  //find item in data array
                                   for (let j in data) {
                                     if (data[j].email == email) {
-                                      //redactions
-                                      customers.data.forEach((customer) => {
-                                        if (customer.address) {
-                                          customer.address = {
-                                            city: "REDACTED",
-                                            country: "REDACTED",
-                                            line1: "REDACTED",
-                                            line2: "REDACTED",
-                                            postal_code: "REDACTED",
-                                            state: "REDACTED",
-                                          };
+                                      let subscriptionsA = [];
+
+                                      for (let k in customers.data) {
+                                        if (customers.data[k].id) {
+                                          let customerSubscriptions;
+                                          //get from stripe
+                                          console.log("Getting subscriptions for customer " + customers.data[k].id);
+                                          stripe.subscriptions.list(
+                                            {
+                                              customer: customers.data[k].id,
+                                            },
+                                            function (err, subscriptions) {
+                                              console.log(subscriptions);
+                                              if (err) {
+                                                console.log("Error getting subscriptions for customer " + customers.data[k].id);
+                                                console.log(err);
+                                              } else {
+                                                 customerSubscriptions = subscriptions.data;
+                                                for (let i in customerSubscriptions) {
+                                                  subscriptionsA.push(customerSubscriptions[i]);
+                                                }
+                                              }
+                                            }
+                                          );
                                         }
-                                        //redact last name
-                                        if (customer.name) {
-                                          customer.name = customer.name.split(" ")[0] + " REDACTED";  
-                                        }
-                                        //redact phone number
-                                        if (customer.phone) {
-                                          customer.phone = "REDACTED";
-                                        }
-                                      });
-                                      data[j].subscriptions = customers.data;
+                                      }
+                                      setTimeout(() => {
+                                        data[j].subscriptions = subscriptionsA;
+                                        
+                                      }, 1000 * 10);
                                     }
                                   }
                                 }
@@ -1044,7 +1060,7 @@ function checkSubscriptions() {
       setTimeout(() => {
         console.log("Subscriptions 50% done checking.");
       }
-      , 1000 * 20);  
+      , 1000 * 30);  
       setTimeout(() => {
         fs.writeFileSync(
           "logs/subscriptions.json",
@@ -1052,7 +1068,7 @@ function checkSubscriptions() {
         );
         console.log("Subscriptions checked and logged.");
       }
-      , 1000 * 40);
+      , 1000 * 60);
 }
 
 
