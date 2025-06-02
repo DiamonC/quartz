@@ -37,7 +37,21 @@ router.get(`/servers`, function (req, res) {
   
         account.servers[i] = parseInt(account.servers[i]);
         console.log("debug2" + `servers/${account.servers[i]}/server.json`);
-      if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
+        let hasValidSubscription = false;
+        let subscriptionsJson = readJSON(`logs/subscriptions.json`);
+        for (let sub of subscriptionsJson) {
+          if (sub.owner == req.query.username + ".json") {
+            for (let item of sub.subscriptions.items) {
+              if (item.plan.active) {
+                hasValidSubscription = true;
+                break;
+              }
+            }
+          }
+        }
+        if (!hasValidSubscription) {
+          account.servers[i] = account.servers[i] + ":no valid subscription";
+        } else if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
         account.servers[i] = readJSON(
           `servers/${account.servers[i]}/server.json`
         );
