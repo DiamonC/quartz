@@ -34,6 +34,11 @@ router.get(`/servers`, function (req, res) {
     if (!providerMode) {
 
       let serverFolder = fs.readdirSync("servers");
+      //if length is 0, create a server folder
+      if (serverFolder.length == 0) {
+        fs.mkdirSync("servers/"+config.idOffset, { recursive: true });
+        serverFolder = fs.readdirSync("servers");
+      }
       for (let i = 0; i < serverFolder.length; i++) {
         //only add if theres no server.json file in the folder 
         if (
@@ -56,9 +61,12 @@ router.get(`/servers`, function (req, res) {
   
         account.servers[i] = parseInt(account.servers[i]);
 
-        let hasValidSubscription = false;
-        let subscriptionsJson = readJSON(`logs/subscriptions.json`);
-        let resetDate = -1;
+        let hasValidSubscription = true;
+                let resetDate = -1;
+        if (providerMode) {
+          hasValidSubscription = false;
+                  let subscriptionsJson = readJSON(`logs/subscriptions.json`);
+
 
         for (let sub of subscriptionsJson) {
       
@@ -78,6 +86,7 @@ router.get(`/servers`, function (req, res) {
           }
         }
         console.log("hasValidSubscription: " + hasValidSubscription);
+      }
         if (!hasValidSubscription) {
           account.servers[i] = account.servers[i] + ":no valid subscription:" + resetDate;
         } else if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
