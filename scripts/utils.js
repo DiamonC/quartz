@@ -23,7 +23,7 @@ function readJSON(file) {
   try {
     if (fs.existsSync(file)) {
       json = JSON.parse(fs.readFileSync(file, "utf8"));
-    } else {
+    } else if (!file.includes("servers/") && !file.includes("accounts/")) {
       console.log(file + " does not exist.");
     }
   } catch (error) {
