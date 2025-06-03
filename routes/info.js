@@ -7,7 +7,7 @@ const f = require("../scripts/mc.js");
 const files = require("../scripts/files.js");
 const config = require("../scripts/utils.js").getConfig();
 const readJSON = require("../scripts/utils.js").readJSON;
-const enableAuth = JSON.parse(config.enableAuth);
+const providerMode = JSON.parse(config.providerMode);
 const stripeKey = config.stripeKey;
 const stripe = require("stripe")(stripeKey);
 const security = require("../scripts/security.js");
@@ -16,7 +16,7 @@ router.get(`/servers`, function (req, res) {
   email = req.headers.username;
   token = req.headers.token;
 
-  if (!enableAuth) email = "noemail";
+  if (!providerMode) email = "noemail";
   //prevents a crash that has occurred
   if (email != undefined) {
     account = readJSON(`accounts/${email}.json`);
@@ -24,7 +24,7 @@ router.get(`/servers`, function (req, res) {
     console.log("../accounts/" + email + ".json");
   }
   console.log(token + " " + account.token);
-  if (token === account.token || !enableAuth) {
+  if (token === account.token || !providerMode) {
     //if req.body.email is "noemail" return 404
     if (req.query.username == ("noemail" | "undefined")) {
       //res.status(404).json({ msg: `Invalid email.` });
@@ -83,8 +83,8 @@ router.get(`/billing`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON(`accounts/${email}.json`);
-  if (!enableAuth) email = "noemail";
-  if (token === account.token || !enableAuth) {
+  if (!providerMode) email = "noemail";
+  if (token === account.token || !providerMode) {
     let subscriptionsArray = [];
     stripe.customers.list(
       {
@@ -167,8 +167,8 @@ router.get(`/`, function (req, res) {
   let returnObject = {};
   //add every non-secret from config and everything from data.json to returnObject
   returnObject["address"] = config.address;
-  returnObject["enablePay"] = config.enablePay;
-  returnObject["enableAuth"] = config.enableAuth;
+  returnObject["providerMode"] = config.providerMode;
+  returnObject["providerMode"] = config.providerMode;
   returnObject["maxServers"] = config.maxServers;
   returnObject["serverStorageLimit"] = config.serverStorageLimit;
   returnObject["enableVirusScan"] = config.enableVirusScan;

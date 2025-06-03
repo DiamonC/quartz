@@ -1,7 +1,7 @@
 const fs = require("fs");
 const { exec } = require("child_process");
 const config = getConfig();
-const enableAuth = JSON.parse(config.enableAuth);
+const providerMode = JSON.parse(config.providerMode);
 const path = require("path");
 const stripe = require("stripe")(config.stripeKey);
 
@@ -65,7 +65,7 @@ function refreshPermissions() {
 
 function hasAccess(token, account, id) {
   let server = readJSON(`servers/${id}/server.json`);
-  if (!enableAuth) return true;
+  if (!providerMode) return true;
   let accountOwner = token === account.token;
   let serverOwner = server.accountId == account.accountId;
   let allowedAccount = false;

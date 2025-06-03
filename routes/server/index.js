@@ -17,8 +17,7 @@ const utils = require("../../scripts/utils.js");
 
 const stripeKey = config.stripeKey;
 const stripe = require("stripe")(stripeKey);
-const enableAuth = JSON.parse(config.enableAuth);
-const enablePay = JSON.parse(config.enablePay);
+const providerMode = JSON.parse(config.providerMode);
 const enableVirusScan = JSON.parse(config.enableVirusScan);
 const portOffset = 10000;
 const idOffset = parseInt(config.idOffset);
@@ -75,7 +74,7 @@ router.get(`/reserve`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
-  if (token === account.token || !enableAuth) {
+  if (token === account.token || !providerMode) {
     let resObj = { atCapacity: true, id: -1 };
     //see if there is an available id
     let id = idOffset - 1;
@@ -120,12 +119,12 @@ router.get(`/claim/:id`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let id = req.params.id;
-  if ((token === account.token && account != undefined) || !enableAuth) {
+  if ((token === account.token && account != undefined) || !providerMode) {
     if (id < idOffset + parseInt(config.maxServers)) {
       console.log(account.servers + " servers");
       let hasPayedForServer = false;
       console.log("claiming server " + id);
-      if (enablePay) {
+      if (providerMode) {
         stripe.customers.list(
           {
             limit: 100,
@@ -548,7 +547,7 @@ router.post(`/new/:id`, function (req, res) {
     let email = req.headers.username;
     let token = req.headers.token;
     let id = req.params.id;
-    if (!enableAuth) email = "noemail";
+    if (!providerMode) email = "noemail";
     let account = readJSON("accounts/" + email + ".json");
     console.log(
       "creating server for " +
@@ -558,7 +557,7 @@ router.post(`/new/:id`, function (req, res) {
     );
     console.log("../accounts/" + email + ".json");
     console.log("account", account);
-    if (token === account.token || !enableAuth) {
+    if (token === account.token || !providerMode) {
       if (!fs.existsSync("servers/" + id + "/server.json")) {
         console.log(id);
         console.log(account.servers);
@@ -592,7 +591,7 @@ router.post(`/new/:id`, function (req, res) {
           let cid = "";
           console.log("debug: " + email + req.headers.username + em);
           if (
-            (!enablePay ||
+            (!providerMode ||
               (account.servers.length == account.freeServers &&
                 account.freeServers > 0)) &&
             (config.maxServers > datajson.numServers ||
@@ -833,7 +832,7 @@ router.delete(`/:id`, function (req, res) {
       if (
         files.hash(req.body.password, account.salt).split(":")[1] ==
           account.password ||
-        !enableAuth ||
+        !providerMode ||
         account.type != "email"
       ) {
         console.log("deleting2 " + req.params.id);

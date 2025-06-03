@@ -17,7 +17,7 @@ const writeJSON = require("../../scripts/utils.js").writeJSON;
 const enableVirusScan = JSON.parse(config.enableVirusScan);
 const backups = require("../../scripts/backups.js");
 const security = require("../../scripts/security.js");
-const enableAuth = JSON.parse(config.enableAuth);
+const providerMode = JSON.parse(config.providerMode);
 
 router.get("/", (req, res) => {
   email = req.headers.username;
@@ -48,7 +48,7 @@ router.post("/", (req, res) => {
 
 function hasAccess(token, account, id) {
   let server = readJSON(`servers/${id}/server.json`);
-  if (!enableAuth) return true;
+  if (!providerMode) return true;
   let accountOwner = token === account.token;
   let serverOwner = server.accountId == account.accountId;
   let allowedAccount  = false;
