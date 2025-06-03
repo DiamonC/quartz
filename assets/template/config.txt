@@ -6,6 +6,8 @@ address=arthmc.xyz
 idOffset=0
 # Do you want to make users pay for servers? (If so, you'll need a Stripe API Key):
 providerMode=false
+# We highly reccomend using docker in providerMode for security. Also, it is necescary for FTP in any mode.
+dockerMode=true
 # The maximum amount of servers that this panel is allowed to create:
 maxServers=8
 # The maximum amount of storage that each server can use (in gigaBytes):
