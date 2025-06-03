@@ -56,5 +56,6 @@ cloudflareVerifySecretKey=
 # The list of places (can also be on other computers via ssh) to backup to [Seperate with commas]:
 backupsList=
 enableBackups=
-# The name of this quartz instance (will appear in the backup locations):
-nodeName=somerandomquartzinstance
+
+# Do not modify
+setup=false

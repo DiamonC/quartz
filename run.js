@@ -20,7 +20,11 @@ if (!fs.existsSync("config.txt")) {
     fs.unlinkSync("stores/settings.json");
     fs.unlinkSync("stores/secrets.json");
   }
-  fs.copyFileSync("assets/template/config.txt", "config.txt");
+  //quit process and tell them to "node setup"
+  console.log(
+    "Please run 'node setup' to set up quartz first."
+  );
+  process.exit(1);
 } else {
   //this compares the current config.txt to the template, and adds any new settings to the config.txt
   let template = fs
