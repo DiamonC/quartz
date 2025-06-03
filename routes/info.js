@@ -7,6 +7,7 @@ const f = require("../scripts/mc.js");
 const files = require("../scripts/files.js");
 const config = require("../scripts/utils.js").getConfig();
 const readJSON = require("../scripts/utils.js").readJSON;
+const writeJSON = require("../scripts/utils.js").writeJSON;
 const providerMode = JSON.parse(config.providerMode);
 const stripeKey = config.stripeKey;
 const stripe = require("stripe")(stripeKey);
@@ -28,6 +29,24 @@ router.get(`/servers`, function (req, res) {
     //if req.body.email is "noemail" return 404
     if (req.query.username == ("noemail" | "undefined")) {
       //res.status(404).json({ msg: `Invalid email.` });
+    }
+
+    if (!providerMode) {
+
+      let serverFolder = fs.readdirSync("servers");
+      for (let i = 0; i < serverFolder.length; i++) {
+        //only add if theres no server.json file in the folder 
+        if (
+          !fs.existsSync(`servers/${serverFolder[i]}/server.json`) &&
+          !account.servers.includes(serverFolder[i])
+        ) {
+          //if the server is not in the account.servers array, add it
+          account.servers.push(serverFolder[i]);
+        }
+      }
+
+      //write to account file
+      writeJSON(`accounts/noemail.json`, account);
     }
 
 
