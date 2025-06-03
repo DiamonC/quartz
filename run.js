@@ -867,6 +867,7 @@ function checkSubscriptions() {
       let servers = fs.readdirSync("servers");
       let data = [];
       for (let i in servers) {
+   
         let owner = null;
         let email = null;
         try {
@@ -879,7 +880,8 @@ function checkSubscriptions() {
             console.log(e);
           }
           if (fs.existsSync(`servers/${serverId}/server.json`)) {
-            let json = readJSON(`servers/${serverId}/server.json`);
+try {
+              let json = readJSON(`servers/${serverId}/server.json`);
             if (json.adminServer == undefined || json.adminServer == false) {
               const accountId = json.accountId;
               fs.readdirSync("accounts").forEach((file) => {
@@ -914,6 +916,7 @@ function checkSubscriptions() {
                                   console.log(
                                     "Customer found for " + email
                                   );
+                                  //find item in data array
                                   //find item in data array
                                   for (let j in data) {
                                     if (data[j].email == email) {
@@ -961,6 +964,10 @@ function checkSubscriptions() {
                     }
                 }
               });
+            }
+} catch (e) {
+              console.log("Error getting server owner for " + serverId);
+              console.log(e);
             }
           } else {
             fs.readdirSync("accounts").forEach((file) => {
@@ -1026,6 +1033,7 @@ function checkSubscriptions() {
                                                  customerSubscriptions = subscriptions.data;
                                                 for (let i in customerSubscriptions) {
                                                   subscriptionsA.push(customerSubscriptions[i]);
+                                                  
                                                 }
                                               }
                                             }
@@ -1069,6 +1077,49 @@ function checkSubscriptions() {
           JSON.stringify(data, null, 2)
         );
         console.log("Subscriptions checked and logged.");
+        //stop any servers with no active subscriptions
+        for (let i in data) {
+          console.log("Checking server " + data[i].serverId);
+          let isActiveSubscription = false;
+          let latestEndDate = 0;
+          if (data[i].subscriptions != undefined) {
+            for (let j in data[i].subscriptions) {
+              if (
+                data[i].subscriptions[j].status == "active"
+              ) {
+                isActiveSubscription = true;
+                break;
+              } else {
+                if (data[i].subscriptions[j].ended_at > latestEndDate) {
+                  latestEndDate = data[i].subscriptions[j].ended_at;
+                }
+              }
+            }
+          }
+          if (!isActiveSubscription) {
+            console.log("Stopping server " + data[i].serverId + " due to no active subscriptions.");
+            f.stopAsync(data[i].serverId, () => {
+              console.log("Server " + data[i].serverId + " stopped.");
+            });
+            //if it has been 7 days since the latest cancellation date, mvoe to trashbin
+            if (Date.now() - latestEndDate > 1000 * 60 * 60 * 24 * 7) {
+              console.log("Moving server " + data[i].serverId + " to trashbin.");
+              if (!fs.existsSync("trashbin")) {
+                fs.mkdirSync("trashbin");
+              }
+              if (fs.existsSync(`servers/${data[i].serverId}`)) {
+                fs.renameSync(
+                  `servers/${data[i].serverId}`,
+                  `trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`
+                );
+              }
+            }
+
+          } else {
+            console.log("Server " + data[i].serverId + " has an active subscription.");
+          }
+          
+        }
       }
       , 1000 * 60);
 }

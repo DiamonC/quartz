@@ -28,3 +28,4 @@ bun.lockb
 assets/terminal-log.txt
 crashLog.txt
 /logs
+/trashbin

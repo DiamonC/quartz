@@ -30,27 +30,37 @@ router.get(`/servers`, function (req, res) {
       //res.status(404).json({ msg: `Invalid email.` });
     }
 
-    console.log("debug1");
+
     for (i in account.servers) {
-      console.log("server " + account.servers[i]);
+
 
   
         account.servers[i] = parseInt(account.servers[i]);
-        console.log("debug2" + `servers/${account.servers[i]}/server.json`);
+
         let hasValidSubscription = false;
         let subscriptionsJson = readJSON(`logs/subscriptions.json`);
+        let resetDate = -1;
+
         for (let sub of subscriptionsJson) {
-          if (sub.owner == req.query.username + ".json") {
-            for (let item of sub.subscriptions.items) {
+      
+          if (sub.owner == req.headers.username + ".json") {
+                        
+            for (let item of sub.subscriptions) {
+                
               if (item.plan.active) {
                 hasValidSubscription = true;
-                break;
+          
+              } else {
+         
+                            //add 7 days to the current period end if the subscription is canceled
+            resetDate = parseInt(item.current_period_end) + 604800;
               }
             }
           }
         }
+        console.log("hasValidSubscription: " + hasValidSubscription);
         if (!hasValidSubscription) {
-          account.servers[i] = account.servers[i] + ":no valid subscription";
+          account.servers[i] = account.servers[i] + ":no valid subscription:" + resetDate;
         } else if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
         account.servers[i] = readJSON(
           `servers/${account.servers[i]}/server.json`
@@ -59,7 +69,7 @@ router.get(`/servers`, function (req, res) {
         account.servers[i].state = f.getState(account.servers[i].id);
         account.servers[i].fileAccessKey = security.getFileAccessKey(account.servers[i].id);
       } else {
-        console.log("sever is not created yet");
+        console.log("server is not created yet");
         account.servers[i] = account.servers[i] + ":not created yet";
       }
     }
