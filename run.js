@@ -9,7 +9,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const files = require("./scripts/files.js");
 const scraper = require("./scripts/scraper.js");
-const security = require("./scripts/security.js");
+
 
 if (!fs.existsSync("config.txt")) {
   //migration from old way of storing settings to config.txt
@@ -93,7 +93,7 @@ if (!fs.existsSync("logs")) {
 
 
 const f = require("./scripts/mc.js");
-const backups = require("./scripts/backups.js");
+
 
 
 
@@ -112,6 +112,8 @@ if (!fs.existsSync("./servers")) {
   fs.rmSync("./servers/template", { recursive: true });
 }
 const ftp = require("./scripts/ftp.js");
+const security = require("./scripts/security.js");
+const backups = require("./scripts/backups.js");
 
 
 try {ftp.startFtpServer();} catch (e) {
