@@ -1,6 +1,6 @@
 API Documentation can be found on the **wiki page**. If you're a developer interested in contributing, make sure you're on our `next` branch to see the code for the next update.
 
-# Quartz
+# Quartz (v1.0)
 
 Quartz is a backend for Arth Panel, a lightweight self-hosted Minecraft server panel. Quartz is made with Node and Express.
 
