@@ -227,6 +227,7 @@ if (Date.now() - datajson.lastUpdate > 1000 * 60 * 60 * 6) {
   checkSubscriptions();
   backup();
   refreshTempToken();
+  refreshFileAccess();
   removeUnusedAccounts();
 }
 setInterval(() => {
@@ -237,6 +238,7 @@ setInterval(() => {
   checkSubscriptions();
   backup();
   refreshTempToken();
+  refreshFileAccess();
   removeUnusedAccounts();
 }, 1000 * 60 * 60 * 12);
 
@@ -690,12 +692,7 @@ process.stdin.on("data", (data) => {
       checkSubscriptions();
       refreshTempToken();
       removeUnusedAccounts();
-      try {
-        ftp.startFtpServer();
-      } catch (e) {
-        console.log("Error refreshing ftp " + e);
-      }
-      security.refreshKeys();
+      refreshFileAccess();
       
       console.log("downloading latest jars and verifying subscriptions...");
       break;
@@ -725,6 +722,17 @@ process.stdin.on("data", (data) => {
       }
   }
 });
+
+function refreshFileAccess() {
+  security.refreshKeys();
+  setTimeout(() => {
+    try {
+      ftp.startFtpServer();
+    } catch (e) {
+      console.log("Error starting FTP server " + e);
+    }
+  }, 1000);
+}
 
 let stdout = "";
 process.stdout.write = (function (write) {
