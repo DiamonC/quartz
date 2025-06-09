@@ -95,7 +95,12 @@ router.get(`/servers`, function (req, res) {
         );
         console.log(account.servers[i]);
         account.servers[i].state = f.getState(account.servers[i].id);
+        try {
         account.servers[i].fileAccessKey = security.getFileAccessKey(account.servers[i].id);
+        } catch (e) {
+          console.log("Error getting file access key for server " + account.servers[i].id + ": " + e);
+          account.servers[i].fileAccessKey = "error";
+        }
       } else {
         console.log("server is not created yet");
         account.servers[i] = account.servers[i] + ":not created yet";
