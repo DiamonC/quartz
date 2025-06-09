@@ -895,8 +895,11 @@ function run(
           ls.stdout.on("data", (data) => {
             count++;
             if (count >= 3) {
+              //make sure out isnt super long
+            if (out.length < 1000* 100) {
               out.push(data);
             }
+          }
 
             terminalOutput[id] = out.join("\n");
             if (
@@ -974,7 +977,10 @@ function run(
       ls.stdout.on("data", (data) => {
         count++;
         if (count >= 3) {
-          out.push(data);
+          //make sure out isnt super long
+          if (out.length < 1000 * 100) {
+            out.push(data);
+          }
         }
 
         terminalOutput[id] = out.join("\n");
