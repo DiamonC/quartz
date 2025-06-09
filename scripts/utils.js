@@ -4,6 +4,7 @@ const config = getConfig();
 const providerMode = JSON.parse(config.providerMode);
 const path = require("path");
 const stripe = require("stripe")(config.stripeKey);
+const files = require("./files.js");
 
 
 function getConfig() {
