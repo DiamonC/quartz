@@ -367,12 +367,17 @@ try {
               if (!fs.existsSync("trashbin")) {
                 fs.mkdirSync("trashbin");
               }
-              if (fs.existsSync(`servers/${data[i].serverId}`)) {
+try {
+                if (fs.existsSync(`servers/${data[i].serverId}`) && !fs.existsSync(`trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`)) {
                 fs.renameSync(
                   `servers/${data[i].serverId}`,
                   `trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`
                 );
               }
+} catch (e) {
+  console.log("Error moving server to trashbin " + data[i].serverId);
+  console.log(e);
+}
             }
 
           } else {
