@@ -77,38 +77,35 @@ router.get(`/reserve`, function (req, res) {
   if (token === account.token || !providerMode) {
     let resObj = { atCapacity: true, id: -1 };
     //see if there is an available id
-    let id = idOffset - 1;
+    let id = -1;  // Initialize to -1 instead of idOffset - 1
     let serversFolder = fs.readdirSync("servers");
+    
+    // If no servers exist, start with idOffset
     if (serversFolder.length == 0) {
       id = idOffset;
-    }
-    //remove any non-numerical folders
-    serversFolder = serversFolder.filter((item) => {
-      return !isNaN(parseInt(item));
-    });
-    //sort numerically
-    serversFolder.sort((a, b) => {
-      return a - b;
-    });
-    for (let i = idOffset; i < idOffset + serversFolder.length; i++) {
-      console.log(i);
-      if (!fs.existsSync("servers/" + i)) {
-        id = i;
-        break;
+      resObj.atCapacity = false;
+    } else {
+      //remove any non-numerical folders
+      serversFolder = serversFolder.filter((item) => {
+        return !isNaN(parseInt(item));
+      });
+      //sort numerically
+      serversFolder.sort((a, b) => {
+        return parseInt(a) - parseInt(b);
+      });
+      
+      // Only look for IDs starting from idOffset
+      for (let i = idOffset; i < idOffset + parseInt(config.maxServers); i++) {
+        if (!fs.existsSync("servers/" + i)) {
+          id = i;
+          resObj.atCapacity = false;
+          break;
+        }
       }
     }
-    //make sure the id is not above the max
-    if (id > idOffset + parseInt(config.maxServers)) {
-      id = -1;
-    } else {
-      resObj.atCapacity = false;
-    }
+    
     resObj.id = id;
-    if (id == idOffset - 1) {
-      id = -1;
-    }
     res.status(200).json(resObj);
-    //note: once tsv system is fully implemented, the server should be written to the tsv file so the session can be cleared even if quartz restarts
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
   }
