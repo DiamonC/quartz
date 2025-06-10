@@ -87,10 +87,10 @@ async function downloadForgeJars() {
     let minecraftVersions = minecraftVersionsHtml.find("section.sidebar-nav li.li-version-list > ul > li > a").toArray();
     let latest = minecraftVersionsHtml.find("section.sidebar-nav li.li-version-list > ul > li.elem-active").toArray()[0];
     minecraftVersions.push(latest);
-    console.log(minecraftVersions)
+    //console.log(minecraftVersions)
     for (let i in minecraftVersions) {
         let url = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_"+minecraftVersions[i].textContent.trim()+".html";
-        console.log(url)
+        //console.log(url)
         const response2 = await fetch(url);
         let forgeVersionsHtml = $(await response2.text());
 

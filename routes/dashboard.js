@@ -57,14 +57,11 @@ Router.get("/customers", async (req, res) => {
   if (req.query.tempToken != datajson.tempToken.split(":")[1]) {
     res.status(401).send({ error: "Unauthorized" });
   } else {
-       s.getCustomers(async (err, customers) => {
-      if (err) {
-        console.error("Error fetching customers:", err);
-        return res.status(500).send({ error: "Internal server error" });
-      }
+      let customers = utils.readJSON("logs/subscriptions.json");
+    
 
     res.status(200).send(customers);
-       });
+    
   }
 });
 
@@ -92,6 +89,7 @@ Router.get("/subscriptions/:email", async (req, res) => {
 
 
 const { execSync } = require("child_process");
+const { read } = require("fs");
 Router.get("/servers", async (req, res) => {
   const datajson = utils.readJSON("assets/data.json");
   if (req.query.tempToken != datajson.tempToken.split(":")[1]) {

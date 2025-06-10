@@ -225,7 +225,7 @@ Router.post("/email/resetPassword/", async (req, res) => {
   try {
     const creditId = await s.getCreditId(email);
     if (account.resetAttempts < 5) {
-      if (creditId === last4 || config.enablePay === false) {
+      if (creditId === last4 || config.providerMode === false) {
         if (password == confirmPassword) {
           if (password.length >= 7) {
             [salt, password] = files.hash(password).split(":");

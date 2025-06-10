@@ -5,6 +5,7 @@ const { readJSON } = require('./utils');
 const crypto = require('crypto');
 const config = require('./utils').getConfig();
 const security = require('./security');
+const dockerMode = JSON.parse(config.dockerMode);
 var server;
 let users = [];
 let accountsFolder = fs.readdirSync('./accounts');
@@ -18,7 +19,8 @@ let port = 10000 + parseInt(config.idOffset) + 99;
 function startFtpServer() {
     //
 
-    for (let i = 0; i < accountsFolder.length; i++) {
+    if (dockerMode) {
+        for (let i = 0; i < accountsFolder.length; i++) {
         let account = accountsFolder[i];
         if (account.endsWith('.json')) {
             let data = readJSON(`./accounts/${account}`);
@@ -99,6 +101,7 @@ function startFtpServer() {
             console.log(`FTP server started on port ${port}`);
         });
     }, 2000);
+    }
 
 }
 

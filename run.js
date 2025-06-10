@@ -9,7 +9,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const files = require("./scripts/files.js");
 const scraper = require("./scripts/scraper.js");
-const security = require("./scripts/security.js");
+
 
 if (!fs.existsSync("config.txt")) {
   //migration from old way of storing settings to config.txt
@@ -20,7 +20,11 @@ if (!fs.existsSync("config.txt")) {
     fs.unlinkSync("stores/settings.json");
     fs.unlinkSync("stores/secrets.json");
   }
-  fs.copyFileSync("assets/template/config.txt", "config.txt");
+  //quit process and tell them to "node setup"
+  console.log(
+    "Please run 'node setup' to set up quartz first."
+  );
+  process.exit(1);
 } else {
   //this compares the current config.txt to the template, and adds any new settings to the config.txt
   let template = fs
@@ -66,7 +70,7 @@ if (!fs.existsSync("config.txt")) {
   }
 
   //mechanism to make sure config isn't being messed up
-  let enablePay;
+  let providerMode;
   let stripeKey;
   for (let i in template) {
     if (template[i].includes("stripeKey")) {
@@ -74,12 +78,12 @@ if (!fs.existsSync("config.txt")) {
     }
   }
   for (let i in current) {
-    if (current[i].includes("enablePay")) {
-      enablePay = current[i].split("=")[1];
+    if (current[i].includes("providerMode")) {
+      providerMode = current[i].split("=")[1];
     }
   }
 
-  if (!(enablePay == "true" && stripeKey.split("").length < 10)) {
+  if (!(providerMode == "true" && stripeKey.split("").length < 10)) {
     fs.writeFileSync("config.txt", template.join("\n"));
   } else {
     console.log("Error with writing config. Exiting...");
@@ -93,7 +97,7 @@ if (!fs.existsSync("logs")) {
 
 
 const f = require("./scripts/mc.js");
-const backups = require("./scripts/backups.js");
+
 
 
 
@@ -112,6 +116,8 @@ if (!fs.existsSync("./servers")) {
   fs.rmSync("./servers/template", { recursive: true });
 }
 const ftp = require("./scripts/ftp.js");
+const security = require("./scripts/security.js");
+const backups = require("./scripts/backups.js");
 
 
 try {ftp.startFtpServer();} catch (e) {
@@ -151,6 +157,7 @@ if (!fs.existsSync("./backup/disabledServers")) {
 
 const readJSON = require("./scripts/utils.js").readJSON;
 const writeJSON = require("./scripts/utils.js").writeJSON;
+const checkSubscriptions = require("./scripts/utils.js").checkSubscriptions;
 
 //Migration from old file-based servers & accounts format from 1.2 to the 1.3 folder-based one
 if (fs.existsSync("accounts.json") && fs.existsSync("servers.json")) {
@@ -217,9 +224,10 @@ fs.readdirSync("assets/uploads").forEach((file) => {
 const datajson = readJSON("./assets/data.json");
 if (Date.now() - datajson.lastUpdate > 1000 * 60 * 60 * 6) {
   downloadJars("partial");
-  verifySubscriptions();
+  checkSubscriptions();
   backup();
   refreshTempToken();
+  refreshFileAccess();
   removeUnusedAccounts();
 }
 setInterval(() => {
@@ -227,9 +235,10 @@ setInterval(() => {
 }, 1000 * 60 * 60 * 2);
 setInterval(() => {
 
-  verifySubscriptions();
+  checkSubscriptions();
   backup();
   refreshTempToken();
+  refreshFileAccess();
   removeUnusedAccounts();
 }, 1000 * 60 * 60 * 12);
 
@@ -436,46 +445,6 @@ function backup() {
 
 
 
-function verifySubscriptions() {
-  //we wait 5 minutes to avoid the user of the terminal having a lag spike at startup
-  setTimeout(() => {
-    if (config.stripeKey != "" && config.enablePay) {
-      const accounts = fs.readdirSync("accounts");
-      for (i in accounts) {
-        if (
-          accounts[i].split(".")[accounts[i].split(".").length - 1] == "json"
-        ) {
-          const account = readJSON(`./accounts/${accounts[i]}`);
-          if (account.freeServers == undefined) {
-            try {
-              const amountOfServers = account.servers.length;
-              s.checkSubscription(account.email, (data) => {
-                if (data.data.length < amountOfServers) {
-                  for (j in account.servers) {
-                    const ls = require("child_process").execSync;
-                    f.stopAsync(account.servers[j].id, () => {
-                      ls(
-                        `mv servers/${account.servers[j].id} backup/disabledServers${account.servers[j].id}`
-                      );
-                    });
-                  }
-
-                  if (account.disabledServers == undefined) {
-                    account.disabledServers = [];
-                  }
-                  account.disabledServers.push(account.servers);
-                  account.servers = [];
-                }
-              });
-            } catch {
-              console.log("Error verifying subscription for " + account.email);
-            }
-          }
-        }
-      }
-    }
-  }, 1000 * 60 * 5);
-}
 
 function removeUnusedAccounts() {
   const accounts = fs.readdirSync("accounts");
@@ -720,15 +689,10 @@ process.stdin.on("data", (data) => {
       break;
     case "refresh":
       downloadJars("full");
-      verifySubscriptions();
+      checkSubscriptions();
       refreshTempToken();
       removeUnusedAccounts();
-      try {
-        ftp.startFtpServer();
-      } catch (e) {
-        console.log("Error refreshing ftp " + e);
-      }
-      security.refreshKeys();
+      refreshFileAccess();
       
       console.log("downloading latest jars and verifying subscriptions...");
       break;
@@ -758,6 +722,17 @@ process.stdin.on("data", (data) => {
       }
   }
 });
+
+function refreshFileAccess() {
+  security.refreshKeys();
+  setTimeout(() => {
+    try {
+      ftp.startFtpServer();
+    } catch (e) {
+      console.log("Error starting FTP server " + e);
+    }
+  }, 1000);
+}
 
 let stdout = "";
 process.stdout.write = (function (write) {
@@ -862,6 +837,7 @@ app.use("/node", require("./routes/node"));
 
 const adminApp = express();
 const adminPort = process.env.ADMIN_PORT || 4001;
+
 
 
 

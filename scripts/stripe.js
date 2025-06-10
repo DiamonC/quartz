@@ -172,7 +172,7 @@ async function getCustomers() {
 
 async function getSubscriptions(email) {
   const cid = await getCustomerID(email);
-
+  console.log("Customer ID:", email, cid);
   try {
     const subscriptions = await stripe.subscriptions.list({
       customer: cid,
