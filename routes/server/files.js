@@ -320,7 +320,7 @@ router.post(
       function loadFile() {
         fs.copyFileSync(
           req.file.path,
-          "servers/" + id + "/" + path + "/" + filename
+          "servers/" + id + "/" + path + "/" + `"${filename}"` // use quotes to handle spaces in filename	
         );
         fs.rmSync(req.file.path);
         res.status(200).send("Upload Complete.");
