@@ -46,7 +46,7 @@ router.post("/delete/:path", function (req, res) {
     if (folder) {
       // FOLDER DELETE
       if (path.length >= 3) {
-        exec(`rm -rf ${fullPath}`, (err) => {
+        exec(`rm -rf "${fullPath}"`, (err) => {
           if (err) {
             console.error(err);
             return res.status(500).json({ msg: "Failed to delete folder." });
