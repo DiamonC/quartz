@@ -755,41 +755,132 @@ function getServerStates() {
   const data = readJSON("./assets/data.json");
 
   console.log("Previous server states");
-  console.log(data.serverStates)
-    data.serverStates = [];
+  console.log(data.serverStates);
+  
+  // Keep track of previous states before clearing
+  const previousStates = {};
+  if (data.serverStates) {
+    data.serverStates.forEach(state => {
+      const [id, status] = state.split(":");
+      previousStates[id] = status;
+    });
+  }
+
+  // Initialize serverStates if it doesn't exist
+  if (!data.serverStateDetails) {
+    data.serverStateDetails = {};
+  }
+
+  data.serverStates = [];
   
   fs.readdirSync("servers").forEach((file) => {
-    //20%% chance to debug log the server state
-    let debug = Math.floor(Math.random() * 5) == 1;
-  
-    data.serverStates.push(file + ":" + f.getState(file));
-  });
+    const currentState = f.getState(file);
+    data.serverStates.push(file + ":" + currentState);
 
+    // Initialize or update detailed state tracking
+    if (!data.serverStateDetails[file]) {
+      data.serverStateDetails[file] = {
+        shouldBeRunning: currentState === "true",
+        lastState: currentState,
+        failureCount: 0,
+        lastFailure: null,
+        lastSuccess: currentState === "true" ? Date.now() : null
+      };
+    } else {
+      // Update state details
+      if (currentState === "false" && previousStates[file] === "true") {
+        // Server just failed
+        data.serverStateDetails[file].failureCount++;
+        data.serverStateDetails[file].lastFailure = Date.now();
+      } else if (currentState === "true") {
+        // Server is running successfully
+        data.serverStateDetails[file].failureCount = 0;
+        data.serverStateDetails[file].lastSuccess = Date.now();
+        data.serverStateDetails[file].shouldBeRunning = true;
+      }
+      
+      // If server was running before and failed, maintain shouldBeRunning state
+      if (data.serverStateDetails[file].shouldBeRunning && currentState === "false") {
+        // Only attempt restart if within reasonable limits
+        const timeSinceLastFailure = Date.now() - (data.serverStateDetails[file].lastFailure || 0);
+        const maxRetries = 3;
+        const retryWindowMs = 15 * 60 * 1000; // 15 minutes
+        
+        if (data.serverStateDetails[file].failureCount <= maxRetries && timeSinceLastFailure > 5 * 60 * 1000) {
+          // Wait 5 minutes between retry attempts
+          console.log(`Attempting to restart failed server ${file} (Attempt ${data.serverStateDetails[file].failureCount} of ${maxRetries})`);
+          setTimeout(() => {
+            f.run(parseInt(file), undefined, undefined, undefined, undefined, undefined, false);
+          }, 5000); // Small delay before retry
+        } else if (data.serverStateDetails[file].failureCount > maxRetries) {
+          console.log(`Server ${file} has failed ${data.serverStateDetails[file].failureCount} times. Manual intervention required.`);
+          // Reset failure count after retry window
+          if (timeSinceLastFailure > retryWindowMs) {
+            data.serverStateDetails[file].failureCount = 0;
+          }
+        }
+      }
+      
+      data.serverStateDetails[file].lastState = currentState;
+    }
+  });
 
   writeJSON("./assets/data.json", data);
 }
 
-//automatic server start-up systen
+//automatic server start-up system
 const data = readJSON("./assets/data.json");
 console.log("Server states");
 console.log(data.serverStates);
+
+// Initialize state details if not present
+if (!data.serverStateDetails) {
+  data.serverStateDetails = {};
+}
+
+// Process servers that should be running
 for (i in data.serverStates) {
-  if (data.serverStates[i] != null && data.serverStates[i].split(":")[1] == "true") {
+  if (data.serverStates[i] != null) {
     let id = parseInt(data.serverStates[i].split(":")[0]);
-    if (
-      fs.existsSync("servers/" + id + "/server.json") &&
-      f.getState(id) == "false"
-    ) {
-      //the multiplier determines the stagger delay by the amount of servers
+    let state = data.serverStates[i].split(":")[1];
+    
+    // Initialize state details for this server if needed
+    if (!data.serverStateDetails[id]) {
+      data.serverStateDetails[id] = {
+        shouldBeRunning: state === "true",
+        lastState: state,
+        failureCount: 0,
+        lastFailure: null,
+        lastSuccess: state === "true" ? Date.now() : null
+      };
+    }
+    
+    // Check if server should be running (either was running or is marked as shouldBeRunning)
+    if ((state === "true" || data.serverStateDetails[id].shouldBeRunning) && 
+        fs.existsSync("servers/" + id + "/server.json") &&
+        f.getState(id) === "false") {
+      
+      // Calculate delay based on number of servers and position
       let multiplier = data.serverStates.length / 16;
-      //random value between 1 and 32
       let random = Math.floor(Math.random() * 24) + 1;
+      let startupDelay = 2400 * random * multiplier;
+      
+      console.log(`Scheduling startup for server ${id} in ${startupDelay/1000} seconds`);
+      
       setTimeout(() => {
-        f.run(id, undefined, undefined, undefined, undefined, undefined, false);
-      }, 2400 * random * multiplier);
+        // Double check state before starting
+        if (f.getState(id) === "false") {
+          console.log(`Starting server ${id} as part of startup sequence`);
+          f.run(id, undefined, undefined, undefined, undefined, undefined, false);
+        }
+      }, startupDelay);
     }
   }
 }
+
+// Save the updated state
+writeJSON("./assets/data.json", data);
+
 setInterval(() => {
   getServerStates();
 }, 1000 * 60 * 3);
