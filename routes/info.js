@@ -70,7 +70,8 @@ router.get(`/servers`, function (req, res) {
 
         for (let sub of subscriptionsJson) {
       
-          if (sub.owner == req.headers.username + ".json") {
+          try {
+            if (sub.owner == req.headers.username + ".json") {
                         
             for (let item of sub.subscriptions) {
                 
@@ -83,7 +84,12 @@ router.get(`/servers`, function (req, res) {
             resetDate = parseInt(item.current_period_end) + 604800;
               }
             }
-          }
+          } 
+      
+          } catch (e) { 
+            console.log("Error processing subscription for " + req.headers.username + ": " + e);
+                hasValidSubscription = true;
+          } 
         }
         console.log("hasValidSubscription: " + hasValidSubscription);
       }
