@@ -721,7 +721,7 @@ router.post(`/new/:id`, function (req, res) {
                               subscriptionsJson
                             );
                           } catch (e) {
-
+                            console.log("error writing subscriptions.json: " + e);
                           }
                           if (
                             em !== "noemail" &&
