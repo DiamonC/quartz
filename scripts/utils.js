@@ -326,6 +326,11 @@ try {
         console.log("Subscriptions checked and logged.");
         //stop any servers with no active subscriptions
         for (let i in data) {
+
+          if (data[i].subscriptions == undefined) {
+            console.log("No subscriptions found for " + data[i].serverId);
+            continue;
+          }
           let adminServer = false;
           try {
             let serverJson = readJSON(`servers/${data[i].serverId}/server.json`);
