@@ -338,7 +338,7 @@ try {
         );
         console.log("Subscriptions checked and logged.");
         //stop any servers with no active subscriptions
-        /*for (let i in data) {
+        for (let i in data) {
 
           if (data[i].subscriptions == undefined) {
             console.log("No subscriptions found for " + data[i].serverId);
@@ -402,7 +402,7 @@ try {
             console.log("Server " + data[i].serverId + " has an active subscription.");
           }
           
-        }*/
+        }
       }
       , 1000 * 60);
 }
