@@ -187,7 +187,14 @@ try {
                                               } else {
                                                  customerSubscriptions = subscriptions.data;
                                                 for (let i in customerSubscriptions) {
-                                                  subscriptionsA.push(customerSubscriptions[i]);
+                                                                                                   subItem = {};
+                                                 subItem.status = customerSubscriptions[i].status;
+                                                 subItem.ended_at = customerSubscriptions[i].ended_at;
+                                                 subItem.current_period_end = customerSubscriptions[i].current_period_end;
+                                                 subItem.start_date = customerSubscriptions[i].start_date;
+                                              
+                                                  subscriptionsA.push(subItem);
+                                                  
                                                 }
                                               }
                                             }
@@ -279,7 +286,13 @@ try {
                                               } else {
                                                  customerSubscriptions = subscriptions.data;
                                                 for (let i in customerSubscriptions) {
-                                                  subscriptionsA.push(customerSubscriptions[i]);
+                                                                                                   subItem = {};
+                                                 subItem.status = customerSubscriptions[i].status;
+                                                 subItem.ended_at = customerSubscriptions[i].ended_at;
+                                                 subItem.current_period_end = customerSubscriptions[i].current_period_end;
+                                                 subItem.start_date = customerSubscriptions[i].start_date;
+                                              
+                                                  subscriptionsA.push(subItem);
                                                   
                                                 }
                                               }
@@ -325,7 +338,7 @@ try {
         );
         console.log("Subscriptions checked and logged.");
         //stop any servers with no active subscriptions
-        for (let i in data) {
+        /*for (let i in data) {
 
           if (data[i].subscriptions == undefined) {
             console.log("No subscriptions found for " + data[i].serverId);
@@ -389,7 +402,7 @@ try {
             console.log("Server " + data[i].serverId + " has an active subscription.");
           }
           
-        }
+        }*/
       }
       , 1000 * 60);
 }
