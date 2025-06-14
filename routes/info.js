@@ -70,12 +70,12 @@ router.get(`/servers`, function (req, res) {
 
         for (let sub of subscriptionsJson) {
       
-          try {
+
             if (sub.owner == req.headers.username + ".json") {
                         
             for (let item of sub.subscriptions) {
                 
-              if (item.plan.active) {
+              if (item.status == "active") {
                 hasValidSubscription = true;
           
               } else {
@@ -86,10 +86,7 @@ router.get(`/servers`, function (req, res) {
             }
           } 
       
-          } catch (e) { 
-            console.log("Error processing subscription for " + req.headers.username + ": " + e);
-                hasValidSubscription = true;
-          } 
+          
         }
         console.log("hasValidSubscription: " + hasValidSubscription);
       }
