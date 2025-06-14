@@ -25,6 +25,8 @@ const stats = require("../../scripts/stats.js");
 const backups = require("../../scripts/backups.js");
 const security = require("../../scripts/security.js");
 
+const checkSubscriptions = require("../../scripts/utils.js").checkSubscriptions;
+
 function writeServer(
   id,
   owner,
@@ -545,6 +547,7 @@ router.post(`/new/:id`, function (req, res) {
     let token = req.headers.token;
     let id = req.params.id;
     if (!providerMode) email = "noemail";
+    if (providerMode) checkSubscriptions();
     let account = readJSON("accounts/" + email + ".json");
     console.log(
       "creating server for " +
