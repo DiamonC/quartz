@@ -359,6 +359,7 @@ try {
           console.log("Checking server " + data[i].serverId);
           let isActiveSubscription = false;
           let latestEndDate = 0;
+          let latestStartDate = 0;
           if (data[i].subscriptions != undefined) {
             for (let j in data[i].subscriptions) {
               if (
@@ -370,8 +371,16 @@ try {
                 if (data[i].subscriptions[j].ended_at > latestEndDate) {
                   latestEndDate = data[i].subscriptions[j].ended_at;
                 }
+                if (data[i].subscriptions[j].start_date > latestStartDate) {
+                  latestStartDate = data[i].subscriptions[j].start_date;
+                }
               }
             }
+          }
+          //if latestStart date was within the past 24 hours, then well mark it as an active subscription
+          //this is because the subscriptions.json file may not have been refreshed yet
+          if (latestStartDate > Date.now() - 1000 * 60 * 60 * 24) {
+            isActiveSubscription = true;
           }
           if (!isActiveSubscription) {
             console.log("Stopping server " + data[i].serverId + " due to no active subscriptions.");
