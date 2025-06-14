@@ -66,6 +66,7 @@ router.get(`/servers`, function (req, res) {
         if (providerMode) {
           hasValidSubscription = false;
                   let subscriptionsJson = readJSON(`logs/subscriptions.json`);
+                  let latestStartDate = 0;
 
 
         for (let sub of subscriptionsJson) {
@@ -74,7 +75,10 @@ router.get(`/servers`, function (req, res) {
             if (sub.owner == req.headers.username + ".json") {
                         
             for (let item of sub.subscriptions) {
-                
+
+              if (item.start_date > latestStartDate) {
+                latestStartDate = item.start_date;
+              }
               if (item.status == "active") {
                 hasValidSubscription = true;
           
@@ -89,6 +93,10 @@ router.get(`/servers`, function (req, res) {
           
         }
         console.log("hasValidSubscription: " + hasValidSubscription);
+        //if the start date is from the past 24 hours, set hasValidSubscription to true
+        if (latestStartDate > 0 && latestStartDate < Date.now() - 86400000) {
+          hasValidSubscription = true;
+        }
       }
         if (!hasValidSubscription) {
           account.servers[i] = account.servers[i] + ":no valid subscription:" + resetDate;
