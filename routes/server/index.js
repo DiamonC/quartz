@@ -695,6 +695,34 @@ router.post(`/new/:id`, function (req, res) {
                             fullServers
                         );
                         if (canCreateServer) {
+                          try {
+                            //read subscriptions.json
+                            let subscriptionsJson = readJSON(
+                              "logs/subscriptions.json"
+                            );
+                            //append basic info so it isn't marked as expired
+                            subscriptionsJson.push({
+                              serverId: id,
+                              owner: email,
+                              email: account.email,
+                              storage: 0,
+                              subscriptions: [
+                                {
+                                  status: "active",
+                                  ended_at: null,
+                                  current_period_end: Math.floor(Date.now() / 1000) + 86400,
+                                  start_date: Math.floor(Date.now() / 1000),
+                                }
+                              ]
+                            });
+                            //write subscriptions.json  
+                            writeJSON(
+                              "logs/subscriptions.json",
+                              subscriptionsJson
+                            );
+                          } catch (e) {
+                            console.log("error writing subscriptions.json: " + e);
+                          }
                           if (
                             em !== "noemail" &&
                             req.body.software !== "undefined" &&

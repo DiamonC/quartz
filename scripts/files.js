@@ -69,7 +69,7 @@ function folderSizeRecursive(directoryPath) {
       bytes += fs.statSync(curPath).size;
     }
   });
-  console.log("folder size: " + bytes)
+
   return bytes;
 }
 
