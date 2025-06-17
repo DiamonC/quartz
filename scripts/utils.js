@@ -231,6 +231,7 @@ try {
                 if (
                   account.servers.includes(serverId) ||
                   account.servers.includes(parseInt(serverId))
+                  && file != "noemail.json"
                 ) {
                   owner = file;
                   if (!file.includes("email:")) email = account.email;
