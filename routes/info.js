@@ -62,6 +62,7 @@ router.get(`/servers`, function (req, res) {
         account.servers[i] = parseInt(account.servers[i]);
 
         let hasValidSubscription = true;
+        let parsedSuccesfully = false;
                 let resetDate = -1;
         if (providerMode) {
           hasValidSubscription = false;
@@ -73,6 +74,7 @@ router.get(`/servers`, function (req, res) {
       
 
             if (sub.owner == req.headers.username + ".json") {
+              parsedSuccesfully = true;
                         
             for (let item of sub.subscriptions) {
 
@@ -98,7 +100,7 @@ router.get(`/servers`, function (req, res) {
           hasValidSubscription = true;
         }
       }
-        if (!hasValidSubscription) {
+        if (!hasValidSubscription && parsedSuccesfully) {
           account.servers[i] = account.servers[i] + ":no valid subscription:" + resetDate;
         } else if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
         account.servers[i] = readJSON(
@@ -364,6 +366,7 @@ router.get(`/accounts`, function (req, res) {
 });
 
 const { exec } = require("child_process");
+const { parse } = require("path");
 
 function getThreadUsage() {
     return new Promise((resolve, reject) => {
