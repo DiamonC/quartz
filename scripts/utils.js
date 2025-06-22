@@ -133,7 +133,7 @@ try {
               const accountId = json.accountId;
               fs.readdirSync("accounts").forEach((file) => {
                 const account = readJSON(`accounts/${file}`);
-                if (account.accountId == accountId) {
+                if (account.accountId == accountId && file != "noemail.json") {
                   owner = file;
                   if (!file.includes("email:")) email = account.email;
                   else email = file.split("email:")[1].split(".json")[0];
@@ -227,7 +227,7 @@ try {
             fs.readdirSync("accounts").forEach((file) => {
               try {
                 let account = readJSON(`accounts/${file}`);
-  
+                console.log("Checking account " + file);
                 if (
                   account.servers.includes(serverId) ||
                   account.servers.includes(parseInt(serverId))
