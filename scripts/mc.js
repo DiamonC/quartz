@@ -1252,7 +1252,7 @@ function readTerminal(id) {
     if (playersJsonCurrent != undefined) {
       playersJsonNew = playersJsonCurrent;
     }
-    let name = ret.split(" has left the game")[0];
+    let name = ret.split(" has left the game")[0].split(" ")[ret.split(" has left the game")[0].split(" ").length - 1];
     //remove the player from the playersJsonNew array
     playersJsonNew = playersJsonNew.filter((p) => p.name !== name);
     writeJSON("servers/" + id + "/players.json", playersJsonNew);
