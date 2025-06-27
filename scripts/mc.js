@@ -1252,6 +1252,7 @@ function readTerminal(id) {
       playersJsonNew = playersJsonCurrent;
     }
     let name = ret.split(" has left the game")[0].split(" ")[ret.split(" has left the game")[0].split(" ").length - 1];
+    console.log("removing player " + name + " from players.json");
     //remove the player from the playersJsonNew array
     playersJsonNew = playersJsonNew.filter((p) => p.name !== name);
     writeJSON("servers/" + id + "/players.json", playersJsonNew);
