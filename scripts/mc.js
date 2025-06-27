@@ -1190,10 +1190,9 @@ function readTerminal(id) {
   //detect java player join
   if (ret.includes("UUID of player")) {
     //unix timestamp
-    let timestamp = new Date().toLocaleTimeString();
     let name = ret.split("UUID of player ")[1].split(" is ")[0];
     let uuid = ret.split("UUID of player ")[1].split(" is ")[1].split("\n")[0];
-    console.log("Detected player join: " + name + " (" + uuid + ") at " + timestamp);
+
     let playersJsonCurrent = undefined;
     if (fs.existsSync("servers/" + id + "/players.json")) {
       playersJsonCurrent = readJSON("servers/" + id + "/players.json");
@@ -1206,14 +1205,14 @@ function readTerminal(id) {
         playersJsonNew.push({
       name: name,
       uuid: uuid,
-      timestamp: timestamp,
+
     });
   }
     } else {
       playersJsonNew.push({
       name: name,
       uuid: uuid,
-      timestamp: timestamp,
+  
     });
     }
     
@@ -1236,7 +1235,7 @@ function readTerminal(id) {
     playersJsonNew.push({
       name: name,
       uuid: uuid,
-      timestamp: timestamp,
+     
     });
     writeJSON("servers/" + id + "/players.json", playersJsonNew);
   
