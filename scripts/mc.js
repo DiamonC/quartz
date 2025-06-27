@@ -1206,7 +1206,7 @@ function readTerminal(id) {
       uuid: uuid,
       timestamp: timestamp,
     });
-
+    writeJSON("servers/" + id + "/players.json", playersJsonNew);
     //detect bedrock player join
   } else if (ret.includes(" (UUID: ")) {
     //unix timestamp
@@ -1242,6 +1242,7 @@ function readTerminal(id) {
     let name = ret.split(" has left the game")[0];
     //remove the player from the playersJsonNew array
     playersJsonNew = playersJsonNew.filter((p) => p.name !== name);
+    writeJSON("servers/" + id + "/players.json", playersJsonNew);
   }
 
   ret = files.simplifyTerminal(ret, server.software);
