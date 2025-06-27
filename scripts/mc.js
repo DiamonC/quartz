@@ -1201,12 +1201,22 @@ function readTerminal(id) {
     let playersJsonNew = [];
     if (playersJsonCurrent != undefined) {
       playersJsonNew = playersJsonCurrent;
-    }
-    playersJsonNew.push({
+      //if player isnt already in the array, add them
+      if (!playersJsonNew.some((p) => p.uuid === uuid)) {
+        playersJsonNew.push({
       name: name,
       uuid: uuid,
       timestamp: timestamp,
     });
+  }
+    } else {
+      playersJsonNew.push({
+      name: name,
+      uuid: uuid,
+      timestamp: timestamp,
+    });
+    }
+    
     writeJSON("servers/" + id + "/players.json", playersJsonNew);
     //detect bedrock player join
   } else if (ret.includes(" (UUID: ")) {
