@@ -1192,7 +1192,7 @@ function readTerminal(id) {
     //unix timestamp
     let timestamp = new Date().toLocaleTimeString();
     let name = ret.split("UUID of player ")[1].split(" is ")[0];
-    let uuid = ret.split("UUID of player ")[1].split(" is ")[1];
+    let uuid = ret.split("UUID of player ")[1].split(" is ")[1].split("\n")[0];
     console.log("Detected player join: " + name + " (" + uuid + ") at " + timestamp);
     let playersJsonCurrent = undefined;
     if (fs.existsSync("servers/" + id + "/players.json")) {
@@ -1219,7 +1219,8 @@ function readTerminal(id) {
     
     writeJSON("servers/" + id + "/players.json", playersJsonNew);
     //detect bedrock player join
-  } else if (ret.includes(" (UUID: ")) {
+  } 
+   if (ret.includes(" (UUID: ")) {
     //unix timestamp
     let timestamp = new Date().toLocaleTimeString();
     let name = ret.split(" (UUID: ")[0];
@@ -1241,7 +1242,8 @@ function readTerminal(id) {
   
 
   
-} else if (ret.includes("has left the game")) {
+} 
+ if (ret.includes("has left the game")) {
     let playersJsonCurrent = undefined;
     if (fs.existsSync("servers/" + id + "/players.json")) {
       playersJsonCurrent = readJSON("servers/" + id + "/players.json");
