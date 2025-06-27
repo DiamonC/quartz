@@ -69,9 +69,9 @@ router.get(`/servers`, function (req, res) {
                   let subscriptionsJson = readJSON(`logs/subscriptions.json`);
                   let latestStartDate = 0;
 
-
+try {
         for (let sub of subscriptionsJson) {
-      
+        
 
             if (sub.owner == req.headers.username + ".json") {
               parsedSuccesfully = true;
@@ -94,6 +94,10 @@ router.get(`/servers`, function (req, res) {
       
           
         }
+      } catch (e) {
+        console.log("Error parsing subscriptions.json: " + e);
+       
+      }
         console.log("hasValidSubscription: " + hasValidSubscription);
         //if the start date is from the past 24 hours, set hasValidSubscription to true
         if (latestStartDate > 0 && latestStartDate < Date.now() - 86400000) {
