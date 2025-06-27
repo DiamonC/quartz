@@ -1186,6 +1186,62 @@ function kill(id) {
 function readTerminal(id) {
   let server = readJSON("servers/" + id + "/server.json");
   let ret = terminalOutput[id];
+  //detect java player join
+  if (ret.includes("UUID of player")) {
+    //unix timestamp
+    let timestamp = new Date().toLocaleTimeString();
+    let name = ret.split("UUID of player ")[1].split(" is ")[0];
+    let uuid = ret.split("UUID of player ")[1].split(" is ")[1];
+    let playersJsonCurrent = undefined;
+    if (fs.existsSync("servers/" + id + "/players.json")) {
+      playersJsonCurrent = readJSON("servers/" + id + "/players.json");
+    }
+    let playersJsonNew = [];
+    if (playersJsonCurrent != undefined) {
+      playersJsonNew = playersJsonCurrent;
+    }
+    playersJsonNew.push({
+      name: name,
+      uuid: uuid,
+      timestamp: timestamp,
+    });
+
+    //detect bedrock player join
+  } else if (ret.includes(" (UUID: ")) {
+    //unix timestamp
+    let timestamp = new Date().toLocaleTimeString();
+    let name = ret.split(" (UUID: ")[0];
+    let uuid = ret.split(" (UUID: ")[1].split(")")[0];
+    let playersJsonCurrent = undefined;
+    if (fs.existsSync("servers/" + id + "/players.json")) {
+      playersJsonCurrent = readJSON("servers/" + id + "/players.json");
+    }
+    let playersJsonNew = [];
+    if (playersJsonCurrent != undefined) {
+      playersJsonNew = playersJsonCurrent;
+    }
+    playersJsonNew.push({
+      name: name,
+      uuid: uuid,
+      timestamp: timestamp,
+    });
+    writeJSON("servers/" + id + "/players.json", playersJsonNew);
+  
+
+  
+} else if (ret.includes("has left the game")) {
+    let playersJsonCurrent = undefined;
+    if (fs.existsSync("servers/" + id + "/players.json")) {
+      playersJsonCurrent = readJSON("servers/" + id + "/players.json");
+    }
+    let playersJsonNew = [];
+    if (playersJsonCurrent != undefined) {
+      playersJsonNew = playersJsonCurrent;
+    }
+    let name = ret.split(" has left the game")[0];
+    //remove the player from the playersJsonNew array
+    playersJsonNew = playersJsonNew.filter((p) => p.name !== name);
+  }
 
   ret = files.simplifyTerminal(ret, server.software);
 
