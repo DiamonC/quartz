@@ -1186,7 +1186,7 @@ function kill(id) {
 function readTerminal(id) {
   let server = readJSON("servers/" + id + "/server.json");
   let ret = terminalOutput[id];
-  if (id == "100" || id == 100) console.log(ret);
+
   //detect java player join
   if (ret.includes("UUID of player")) {
     //unix timestamp
