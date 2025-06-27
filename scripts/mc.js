@@ -1193,6 +1193,7 @@ function readTerminal(id) {
     let timestamp = new Date().toLocaleTimeString();
     let name = ret.split("UUID of player ")[1].split(" is ")[0];
     let uuid = ret.split("UUID of player ")[1].split(" is ")[1];
+    console.log("Detected player join: " + name + " (" + uuid + ") at " + timestamp);
     let playersJsonCurrent = undefined;
     if (fs.existsSync("servers/" + id + "/players.json")) {
       playersJsonCurrent = readJSON("servers/" + id + "/players.json");
