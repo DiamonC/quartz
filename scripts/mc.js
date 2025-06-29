@@ -1189,7 +1189,7 @@ function readTerminal(id) {
   let server = readJSON("servers/" + id + "/server.json");
   let ret = terminalOutput[id];
 
-  console.log(players[id]);
+
 
   //detect java player join
   if (ret.includes("UUID of player")) {
@@ -1211,7 +1211,7 @@ function readTerminal(id) {
   } 
    if (ret.includes(" (UUID: ")) {
   
-    let name = "."+ret.split(" (UUID: ")[0].split(".")[0].split(" ")[ret.split(" (UUID: ")[0].split(".")[0].split(" ").length - 1];
+    let name = "."+ret.split(" joined (UUID: ")[0].split(".")[ret.split(" (UUID: ")[0].split(".").length - 1];
     let uuid = ret.split(" (UUID: ")[1].split(")")[0];
     
     players[id] = players[id] || [];  
