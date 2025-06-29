@@ -1526,14 +1526,20 @@ router.get("/:id/players", function (req, res) {
   if (utils.hasAccess(token, account, req.params.id)) {
     let playersOnline = f.getPlayerList(req.params.id);
     if (playersOnline) {
+      let usercache = readJSON("servers/" + req.params.id + "/usercache.json");
       let allPlayers = [];
-      let folder = fs.readdirSync(`servers/${req.params.id}/world/playerdata`);
-      folder.forEach((file) => {
-        if (file.endsWith(".dat")) {
-          let uuid = file.replace(".dat", "");
-          allPlayers.push(uuid);
+      if (usercache) {
+        for (let i = 0; i < usercache.length; i++) {
+          let player = usercache[i];
+          if (player.name && player.uuid) {
+            allPlayers.push({
+              name: player.name,
+              uuid: player.uuid,
+        
+            });
+          }
         }
-      });
+      }
       res.status(200).json({ playersOnline, allPlayers });
     }
   } else {
