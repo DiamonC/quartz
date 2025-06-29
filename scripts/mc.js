@@ -1432,6 +1432,13 @@ function killObstructingProcess(id) {
   }
 }
 
+function getPlayerList(id) {
+  if (players[id] == undefined) {
+    players[id] = [];
+  }
+  return players[id];
+}
+
 module.exports = {
   run,
   stop,
@@ -1444,5 +1451,6 @@ module.exports = {
   getState,
   downloadModpack,
   killAsync,
-  getServersOnThreads
+  getServersOnThreads,
+  getPlayerList,
 };

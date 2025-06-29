@@ -1519,6 +1519,20 @@ router.get("/:id/backup/:timestamp", function (req, res) {
   }
 });
 
+router.get("/:id/players", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let players = f.getPlayerList(req.params.id);
+    if (players) {
+      res.status(200).json(players);
+    }
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
+
 
 
 module.exports = router;
