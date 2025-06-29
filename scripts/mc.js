@@ -1242,7 +1242,7 @@ function readTerminal(id) {
 
   
 } 
- if (ret.includes("has left the game")) {
+ if (ret.includes("left the game")) {
     let playersJsonCurrent = undefined;
     if (fs.existsSync("servers/" + id + "/players.json")) {
       playersJsonCurrent = readJSON("servers/" + id + "/players.json");
@@ -1251,8 +1251,8 @@ function readTerminal(id) {
     if (playersJsonCurrent != undefined) {
       playersJsonNew = playersJsonCurrent;
     }
-    let name = ret.split(" has left the game")[0].split(" ")[ret.split(" has left the game")[0].split(" ").length - 1];
-    console.log("removing player " + name + " from players.json");
+    let name = ret.split(" left the game")[0].split(" ")[ret.split(" left the game")[0].split(" ").length - 1];
+
     //remove the player from the playersJsonNew array
     playersJsonNew = playersJsonNew.filter((p) => p.name !== name);
     writeJSON("servers/" + id + "/players.json", playersJsonNew);
