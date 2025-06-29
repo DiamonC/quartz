@@ -165,7 +165,7 @@ function run(
     let server = readJSON("servers/" + id + "/server.json");
     let out = [];
     states[id] = "starting";
-
+    players[id] = [];
     
 
     // i isNew is undefined, set it to true
@@ -1188,6 +1188,8 @@ function kill(id) {
 function readTerminal(id) {
   let server = readJSON("servers/" + id + "/server.json");
   let ret = terminalOutput[id];
+
+  console.log(players[id]);
 
   //detect java player join
   if (ret.includes("UUID of player")) {
