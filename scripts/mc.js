@@ -13,6 +13,8 @@ const writeJSON = require("./utils.js").writeJSON;
 let terminalOutput = [];
 let terminalInput = "";
 
+let players = [];
+
 const portOffset = 10000; 
 
 let amountOfThreads = 16;
@@ -1193,74 +1195,37 @@ function readTerminal(id) {
     let name = ret.split("UUID of player ")[1].split(" is ")[0];
     let uuid = ret.split("UUID of player ")[1].split(" is ")[1].split("\n")[0];
 
-    let playersJsonCurrent = undefined;
-    if (fs.existsSync("servers/" + id + "/players.json")) {
-      playersJsonCurrent = readJSON("servers/" + id + "/players.json");
-    }
-    let playersJsonNew = [];
-    if (playersJsonCurrent != undefined) {
-      playersJsonNew = playersJsonCurrent;
-      //if player isnt already in the array, add them
-      if (!playersJsonNew.some((p) => p.uuid === uuid)) {
-        playersJsonNew.push({
+ 
+    players[id] = players[id] || [];
+    if (!players[id].some((p) => p.uuid === uuid)) {
+      players[id].push({
       name: name,
       uuid: uuid,
-
-    });
-  }
-    } else {
-      playersJsonNew.push({
-      name: name,
-      uuid: uuid,
-  
     });
     }
     
-    writeJSON("servers/" + id + "/players.json", playersJsonNew);
+
     //detect bedrock player join
   } 
    if (ret.includes(" (UUID: ")) {
-    //unix timestamp
-    let timestamp = new Date().toLocaleTimeString();
-    let name = ret.split(" (UUID: ")[0];
-    let uuid = ret.split(" (UUID: ")[1].split(")")[0];
-    let playersJsonCurrent = undefined;
-    if (fs.existsSync("servers/" + id + "/players.json")) {
-      playersJsonCurrent = readJSON("servers/" + id + "/players.json");
-    }
-    let playersJsonNew = [];
-    if (playersJsonCurrent != undefined) {
-      playersJsonNew = playersJsonCurrent;
-    }
-    playersJsonNew.push({
-      name: name,
-      uuid: uuid,
-     
-    });
-    writeJSON("servers/" + id + "/players.json", playersJsonNew);
   
-
+    let name = "."+ret.split(" (UUID: ")[0].split(".")[0].split(" ")[ret.split(" (UUID: ")[0].split(".")[0].split(" ").length - 1];
+    let uuid = ret.split(" (UUID: ")[1].split(")")[0];
+    
+    players[id] = players[id] || [];  
+    if (!players[id].some((p) => p.uuid === uuid)) {
+      players[id].push({
+        name: name,
+        uuid: uuid,
+      });
+    }
   
 } 
  if (ret.includes("left the game")) {
-    let playersJsonCurrent = undefined;
-    if (fs.existsSync("servers/" + id + "/players.json")) {
-      playersJsonCurrent = readJSON("servers/" + id + "/players.json");
-    }
-    let playersJsonNew = [];
-    if (playersJsonCurrent != undefined) {
-      playersJsonNew = playersJsonCurrent;
-    }
-    let name = ret.split(" left the game")[0].split(" ")[ret.split(" left the game")[0].split(" ").length - 1];
-
-    //remove the player from the playersJsonNew array
-    playersJsonNew = playersJsonNew.filter((p) => p.name !== name);
-    writeJSON("servers/" + id + "/players.json", playersJsonNew);
+    let name = ret.split("left the game")[0].split(" ")[ret.split("left the game")[0].split(" ").length - 1];
+    players[id] = players[id] || [];
+    players[id] = players[id].filter((p) => p.name != name);
   }
-
-  ret = files.simplifyTerminal(ret, server.software);
-
-  return ret;
 }
 
 function writeTerminal(id, cmd) {
