@@ -1185,57 +1185,73 @@ function kill(id) {
   killObstructingProcess(parseInt(id));
   states[id] = "false";
 }
+// Global state to track terminal processing index
+if (typeof globalTerminalState === 'undefined') {
+  var globalTerminalState = {};
+}
+
 function readTerminal(id) {
   let server = readJSON("servers/" + id + "/server.json");
-  let ret = terminalOutput[id];
-
-
-
-  //detect java player join
-  if (ret.includes("UUID of player")) {
-    //unix timestamp
-    let name = ret.split("UUID of player ")[1].split(" is ")[0];
-    let uuid = ret.split("UUID of player ")[1].split(" is ")[1].split("\n")[0];
-
- 
-    players[id] = players[id] || [];
-    if (!players[id].some((p) => p.uuid === uuid)) {
-      players[id].push({
-      name: name,
-      uuid: uuid,
-    });
+  let fullOutput = terminalOutput[id];
+  
+  // Initialize processing state
+  if (!globalTerminalState[id]) {
+    globalTerminalState[id] = { index: 0 };
+  }
+  let state = globalTerminalState[id];
+  
+  // Process only new content
+  let newOutput = fullOutput.slice(state.index);
+  state.index = fullOutput.length;
+  
+  // Process each line individually
+  let lines = newOutput.split('\n');
+  for (let line of lines) {
+    // Java player join
+    if (line.includes("UUID of player")) {
+      let match = line.match(/UUID of player (\w+) is ([a-f0-9-]+)/);
+      if (match) {
+        let name = match[1];
+        let uuid = match[2];
+        
+        players[id] = players[id] || [];
+        if (!players[id].some(p => p.uuid === uuid)) {
+          players[id].push({ name, uuid });
+        }
+      }
     }
     
-
-    //detect bedrock player join
-  } 
-   if (ret.includes(" (UUID: ")) {
-  
-    let name = "."+ret.split(" joined (UUID: ")[0].split(".")[ret.split(" joined (UUID: ")[0].split(".").length - 1];
-    let uuid = ret.split(" (UUID: ")[1].split(")")[0];
-    
-    players[id] = players[id] || [];  
-    if (!players[id].some((p) => p.uuid === uuid)) {
-      players[id].push({
-        name: name,
-        uuid: uuid,
-      });
+    // Bedrock player join
+    if (line.includes(" joined (UUID: ")) {
+      let match = line.match(/(.*) joined \(UUID: ([a-f0-9-]+)\)/);
+      if (match) {
+        let fullName = match[1];
+        let name = '.' + fullName.split('.').pop();
+        let uuid = match[2];
+        
+        players[id] = players[id] || [];
+        if (!players[id].some(p => p.uuid === uuid)) {
+          players[id].push({ name, uuid });
+        }
+      }
     }
-  
-} 
- if (ret.includes("left the game")) {
-    let name = ret.split(" left the game")[0].split(": ")[ret.split(" left the game")[0].split(": ").length - 1];
-
-    let uuid = players[id].find((p) => p.name === name)?.uuid;
-    if (uuid) {
-      players[id] = players[id].filter((p) => p.uuid !== uuid);
+    
+    // Player leave (both Java/Bedrock)
+    if (line.includes(" left the game")) {
+      let match = line.match(/: (\S+) left the game$/);
+      if (match) {
+        let name = match[1];
+        console.log("Player left: " + name);
+        players[id] = players[id] || [];
+        players[id] = players[id].filter(p => p.name !== name);
+      }
     }
   }
-
-  ret = files.simplifyTerminal(ret, server.software);
-
-  return ret;
+  
+  // Return simplified output
+  return files.simplifyTerminal(fullOutput, server.software);
 }
+
 
 function writeTerminal(id, cmd) {
   terminalInput = cmd;
