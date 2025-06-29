@@ -1519,6 +1519,34 @@ router.get("/:id/backup/:timestamp", function (req, res) {
   }
 });
 
+router.get("/:id/players", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let playersOnline = f.getPlayerList(req.params.id);
+    if (playersOnline) {
+      let usercache = readJSON("servers/" + req.params.id + "/usercache.json");
+      let allPlayers = [];
+      if (usercache) {
+        for (let i = 0; i < usercache.length; i++) {
+          let player = usercache[i];
+          if (player.name && player.uuid) {
+            allPlayers.push({
+              name: player.name,
+              uuid: player.uuid,
+        
+            });
+          }
+        }
+      }
+      res.status(200).json({ playersOnline, allPlayers });
+    }
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
+
 
 
 module.exports = router;
