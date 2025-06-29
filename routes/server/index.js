@@ -1524,9 +1524,17 @@ router.get("/:id/players", function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   if (utils.hasAccess(token, account, req.params.id)) {
-    let players = f.getPlayerList(req.params.id);
-    if (players) {
-      res.status(200).json(players);
+    let playersOnline = f.getPlayerList(req.params.id);
+    if (playersOnline) {
+      let allPlayers = [];
+      let folder = fs.readdirSync(`servers/${req.params.id}/world/playerdata`);
+      folder.forEach((file) => {
+        if (file.endsWith(".dat") || file.endsWith(".dat_old")) {
+          let uuid = file.replace(".dat", "").replace(".dat_old", "");
+          allPlayers.push(uuid);
+        }
+      });
+      res.status(200).json({ playersOnline, allPlayers });
     }
   } else {
     res.status(401).json({ msg: "Invalid credentials." });
