@@ -1223,9 +1223,15 @@ function readTerminal(id) {
 } 
  if (ret.includes("left the game")) {
     let name = ret.split("left the game")[0].split(" ")[ret.split("left the game")[0].split(" ").length - 1];
-    players[id] = players[id] || [];
-    players[id] = players[id].filter((p) => p.name != name);
+    let uuid = players[id].find((p) => p.name === name)?.uuid;
+    if (uuid) {
+      players[id] = players[id].filter((p) => p.uuid !== uuid);
+    }
   }
+
+  ret = files.simplifyTerminal(ret, server.software);
+
+  return ret;
 }
 
 function writeTerminal(id, cmd) {
