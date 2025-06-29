@@ -1529,8 +1529,8 @@ router.get("/:id/players", function (req, res) {
       let allPlayers = [];
       let folder = fs.readdirSync(`servers/${req.params.id}/world/playerdata`);
       folder.forEach((file) => {
-        if (file.endsWith(".dat") || file.endsWith(".dat_old")) {
-          let uuid = file.replace(".dat", "").replace(".dat_old", "");
+        if (file.endsWith(".dat")) {
+          let uuid = file.replace(".dat", "");
           allPlayers.push(uuid);
         }
       });
