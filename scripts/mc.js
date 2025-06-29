@@ -1224,7 +1224,8 @@ function readTerminal(id) {
   
 } 
  if (ret.includes("left the game")) {
-    let name = ret.split("left the game")[0].split(" ")[ret.split("left the game")[0].split(" ").length - 1];
+    let name = ret.split(" left the game")[0].split(": ")[ret.split(" left the game")[0].split(": ").length - 1];
+
     let uuid = players[id].find((p) => p.name === name)?.uuid;
     if (uuid) {
       players[id] = players[id].filter((p) => p.uuid !== uuid);
