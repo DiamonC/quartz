@@ -1211,7 +1211,7 @@ function readTerminal(id) {
   } 
    if (ret.includes(" (UUID: ")) {
   
-    let name = "."+ret.split(" joined (UUID: ")[0].split(".")[ret.split(" (UUID: ")[0].split(".").length - 1];
+    let name = "."+ret.split(" joined (UUID: ")[0].split(".")[ret.split(" joined (UUID: ")[0].split(".").length - 1];
     let uuid = ret.split(" (UUID: ")[1].split(")")[0];
     
     players[id] = players[id] || [];  
@@ -1436,6 +1436,7 @@ function getPlayerList(id) {
   if (players[id] == undefined) {
     players[id] = [];
   }
+  console.log(players[1])
   return players[id];
 }
 
