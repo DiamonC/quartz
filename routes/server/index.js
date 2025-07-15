@@ -547,7 +547,7 @@ router.post(`/new/:id`, function (req, res) {
     let token = req.headers.token;
     let id = req.params.id;
     if (!providerMode) email = "noemail";
-    if (providerMode) checkSubscriptions();
+    //if (providerMode) checkSubscriptions();
     let account = readJSON("accounts/" + email + ".json");
     console.log(
       "creating server for " +
