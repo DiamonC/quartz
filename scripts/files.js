@@ -24,7 +24,12 @@ function downloadAsync(file, url, callback) {
       console.log("Error: " + e);
       console.log("stdout: " + stdout);
       console.log("stderr: " + stderr);
-      callback("error");
+      if (typeof callback === "function") {
+  callback(out);
+} else {
+  console.error("Provided callback is not a function:", callback);
+}
+      return;
     }
   });
 }
