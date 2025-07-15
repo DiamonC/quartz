@@ -1324,7 +1324,9 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
       (error, stdout, stderr) => {
         console.log("downloading modpack from forge...");
         //make the directory "temp"
-        fs.mkdirSync(folder + "/temp");
+        if (!fs.existsSync(folder + "/temp")) {
+          fs.mkdirSync(folder + "/temp");
+        }
         exec(
           "unzip -o " + folder + "/modpack.zip" + " -d " + folder + "/temp",
           (error, stdout, stderr) => {
