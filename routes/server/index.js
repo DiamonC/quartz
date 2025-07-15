@@ -658,7 +658,7 @@ router.post(`/new/:id`, function (req, res) {
                   console.log("err");
                   return "no";
                 } else {
-                  console.log("debug: " + email + req.headers.username + em);
+                  //console.log("debug: " + account.email);
 
                   if (customers.data.length > 0) {
                     cid = customers.data[0].id;
