@@ -1304,6 +1304,7 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
                     modpack.currentVersionDateAdded = Date.now();
                     modpack.versionID = versionID;
                     writeJSON(folder + "/modrinth.index.json", modpack);
+                    deleteClientSideMods(id);
                     return utils.refreshPermissions();
                    
                   });
@@ -1324,7 +1325,9 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
       (error, stdout, stderr) => {
         console.log("downloading modpack from forge...");
         //make the directory "temp"
-        fs.mkdirSync(folder + "/temp");
+        if (!fs.existsSync(folder + "/temp")) {
+          fs.mkdirSync(folder + "/temp");
+        }
         exec(
           "unzip -o " + folder + "/modpack.zip" + " -d " + folder + "/temp",
           (error, stdout, stderr) => {
@@ -1414,7 +1417,7 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
                     modpack.currentVersionDateAdded = Date.now();
                     modpack.versionID = versionID;
                     writeJSON(folder + "/curseforge.index.json", modpack);
-
+                    deleteClientSideMods(id);
                     //remove temp folder
                     exec("rm -r " + folder + "/temp");
                     return;
@@ -1456,6 +1459,19 @@ function getPlayerList(id) {
   return players[id];
 }
 
+function deleteClientSideMods(id) {
+  const folder = fs.readdirSync("servers/" + id+"/mods");
+  const list = fs.readFileSync("assets/clientsidemods.txt", "utf8").split("\n");
+  for (let i = 0; i < folder.length; i++) {
+    for (let j = 0; j < list.length; j++) {
+      if (folder[i].includes(list[j].split(":")[1])) {
+        fs.unlinkSync("servers/" + id + "/mods/" + folder[i]);
+      }
+    }
+  }
+}
+
+deleteClientSideMods(1);
 module.exports = {
   run,
   stop,
