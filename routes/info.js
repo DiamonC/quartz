@@ -73,7 +73,7 @@ try {
         for (let sub of subscriptionsJson) {
         
 
-            if (sub.owner == req.headers.username + ".json") {
+            if (sub.owner == req.headers.username + ".json" && sub.subscriptions != undefined) {
               parsedSuccesfully = true;
                         
             for (let item of sub.subscriptions) {
