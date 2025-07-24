@@ -1460,6 +1460,9 @@ function getPlayerList(id) {
 }
 
 function deleteClientSideMods(id) {
+  if (fs.existsSync("servers/" + id + "/mods") == false) {
+    return;
+  }
   const folder = fs.readdirSync("servers/" + id+"/mods");
   const list = fs.readFileSync("assets/clientsidemods.txt", "utf8").split("\n");
   for (let i = 0; i < folder.length; i++) {
