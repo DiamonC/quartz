@@ -414,6 +414,16 @@ try {
                 if (fs.existsSync(`servers/${data[i].serverId}`)) {
                   fs.rmdirSync(`servers/${data[i].serverId}`, { recursive: true });
                 }
+
+                //in the accoount file, add :freed to the serverId
+                let account = readJSON(`accounts/${data[i].owner}`);
+                if (account.servers.includes(data[i].serverId)) {
+                  account.servers = account.servers.filter(
+                    (server) => server !== data[i].serverId
+                  );
+                  account.servers.push(data[i].serverId + ":freed");
+                  writeJSON(`accounts/${data[i].owner}`, account);
+                }
               }
 } catch (e) {
   console.log("Error moving server to trashbin " + data[i].serverId);
