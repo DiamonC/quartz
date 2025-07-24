@@ -1472,7 +1472,7 @@ function deleteClientSideMods(id) {
   }
 }
 
-deleteClientSideMods(1);
+
 module.exports = {
   run,
   stop,
