@@ -1461,12 +1461,12 @@ function getPlayerList(id) {
 }
 
 function deleteClientSideMods(id) {
-  const folder = fs.readdirSync("servers/" + idOffset + id + "/mods");
+  const folder = fs.readdirSync("servers/" + (idOffset + parseInt(id)) + "/mods");
   const list = fs.readFileSync("assets/clientsidemods.txt", "utf8").split("\n");
   for (let i = 0; i < folder.length; i++) {
     for (let j = 0; j < list.length; j++) {
       if (folder[i].includes(list[j].split(":")[1])) {
-        fs.unlinkSync("servers/" + id + "/mods/" + folder[i]);
+        fs.unlinkSync("servers/" + (idOffset + parseInt(id)) + "/mods/" + folder[i]);
       }
     }
   }
