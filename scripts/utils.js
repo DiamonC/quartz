@@ -180,7 +180,7 @@ try {
                                               status: "all",
                                             },
                                             function (err, subscriptions) {
-                                              console.log(subscriptions);
+                                          
                                               if (err) {
                                                 console.log("Error getting subscriptions for customer " + customers.data[k].id);
                                                 console.log(err);
@@ -192,7 +192,8 @@ try {
                                                  subItem.ended_at = customerSubscriptions[i].ended_at;
                                                  subItem.current_period_end = customerSubscriptions[i].current_period_end;
                                                  subItem.start_date = customerSubscriptions[i].start_date;
-                                              
+                                                 console.log("Server Slot " + data[j].serverId + " subscription: ");
+                                                  console.log(subItem);
                                                   subscriptionsA.push(subItem);
                                                   
                                                 }
@@ -272,15 +273,14 @@ try {
                                       for (let k in customers.data) {
                                         if (customers.data[k].id) {
                                           let customerSubscriptions;
-                                          //get from stripe
-                                          console.log("Getting subscriptions for customer " + customers.data[k].id);
+                                        
                                           stripe.subscriptions.list(
                                             {
                                               customer: customers.data[k].id,
                                               status: "all",
                                             },
                                             function (err, subscriptions) {
-                                              console.log(subscriptions);
+                                             
                                               if (err) {
                                                 console.log("Error getting subscriptions for customer " + customers.data[k].id);
                                                 console.log(err);
@@ -292,6 +292,8 @@ try {
                                                  subItem.ended_at = customerSubscriptions[i].ended_at;
                                                  subItem.current_period_end = customerSubscriptions[i].current_period_end;
                                                  subItem.start_date = customerSubscriptions[i].start_date;
+                                                                                                  console.log("Server Slot " + data[j].serverId + " subscription: ");
+                                                 console.log(subItem);
                                               
                                                   subscriptionsA.push(subItem);
                                                   
