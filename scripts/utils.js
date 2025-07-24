@@ -142,6 +142,7 @@ try {
                     owner: owner,
                     email: email,
                     storage: storage,
+                    accountId: account.accountId,
                   });
                       try {
                         console.log("Getting customer for " + email);
@@ -243,6 +244,7 @@ try {
                     owner: owner,
                     email: email,
                     storage: storage,
+                    accountId: account.accountId,
                   });
                       try {
                         console.log("Getting customer for " + email);
@@ -391,7 +393,12 @@ try {
             f.stopAsync(data[i].serverId, () => {
               console.log("Server " + data[i].serverId + " stopped.");
             });
-            //if it has been 7 days since the latest cancellation date, mvoe to trashbin
+            let timeToTrash = Date.now() - latestEndDate > 1000 * 60 * 60 * 24 * 7;
+            let newOwner = !(readJSON(`servers/${data[i].serverId}/server.json`).owner == data[i].accountId);
+            console.log("New Owner? " + newOwner);
+            console.log("Time to trash? " + timeToTrash);
+            if (timeToTrash && !adminServer && !newOwner) {
+            //if it has been 7 days since the latest cancellation date, move to trashbin
             if (Date.now() - latestEndDate > 1000 * 60 * 60 * 24 * 7) {
               console.log("Moving server " + data[i].serverId + " to trashbin.");
               if (!fs.existsSync("trashbin")) {
@@ -420,7 +427,7 @@ try {
           
         }
       }
-      , 1000 * 60);
+      }, 1000 * 60);
 }
 
 module.exports = { getConfig, readJSON, writeJSON, refreshPermissions, hasAccess, sanitizePath, checkSubscriptions};
