@@ -403,6 +403,10 @@ try {
                   `servers/${data[i].serverId}`,
                   `trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`
                 );
+                //sometimes a empty folder is left behind, so we delete it
+                if (fs.existsSync(`servers/${data[i].serverId}`)) {
+                  fs.rmdirSync(`servers/${data[i].serverId}`, { recursive: true });
+                }
               }
 } catch (e) {
   console.log("Error moving server to trashbin " + data[i].serverId);
