@@ -394,7 +394,9 @@ try {
               console.log("Server " + data[i].serverId + " stopped.");
             });
             let timeToTrash = Date.now() - latestEndDate > 1000 * 60 * 60 * 24 * 7;
-            let newOwner = !(readJSON(`servers/${data[i].serverId}/server.json`).owner == data[i].accountId);
+            let newOwner = false;
+            if (fs.existsSync(`servers/${data[i].serverId}/server.json`))
+             newOwner = !(readJSON(`servers/${data[i].serverId}/server.json`).owner == data[i].accountId);
             console.log("New Owner? " + newOwner);
             console.log("Time to trash? " + timeToTrash);
             if (timeToTrash && !adminServer && !newOwner) {
