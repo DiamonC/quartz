@@ -1296,6 +1296,10 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
                         () => {}
                       );
                     }
+                    //copy override mods over one again since sometimes it doesnt work
+                    execSync(
+                      "cp -r " + folder + "/overrides/* " + folder + "/"
+                    );
                     //add in modpackID so that it frontends can check for updates later
                     modpack.projectID = modpackID;
                     modpack.platform = "mr";
