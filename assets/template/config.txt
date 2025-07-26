@@ -31,9 +31,6 @@ max=
 deeplKey=
 # Arth Hosting Only: PIN so that backend can get account data
 forwardingPin=
-# Labrinth is the software behind modrinth, so if you want to use a different 
-# labrinth-based site for some reason, enter the domain name here:
-labrinthUrl=https://api.modrinth.com/v2
 # The 'pepper', used to obfuscate things such as IP addresses:
 pepper=
 # The info for cloudflare that enables the claiming of subdomains

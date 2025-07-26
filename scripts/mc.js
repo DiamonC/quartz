@@ -1262,11 +1262,8 @@ function writeTerminal(id, cmd) {
 }
 function downloadModpack(id, modpackURL, modpackID, versionID) {
   const folder = "servers/" + id;
-  let includes = "modrinth.com";
-  try {
-    includes = config.labrinthUrl;
-  } catch {}
-  if (modpackURL.includes(includes)) {
+
+  if (modpackURL.includes("modrinth.com")) {
     files.downloadAsync(
       folder + "/modpack.mrpack",
       modpackURL,
