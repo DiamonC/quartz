@@ -620,7 +620,13 @@ router.post(`/new/:id`, function (req, res) {
               console.log("debuglog2 " + id + server.id);
               writeJSON("accounts/" + email + ".json", account);
             }
-
+                          //restart the ftp container
+                          try {
+                            ftp.startFtpServer();
+                          } catch (e) {
+                            console.log("error restarting ftp container " + e);
+                          }
+                          security.refreshKeys();
             f.run(
               id,
               req.body.software,
