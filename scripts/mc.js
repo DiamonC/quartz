@@ -1293,15 +1293,17 @@ for (i in modpack.files) {
                         );
                       }
                     
-                        console.log("downloading a mod")
-                      files.downloadAsync(
+                 
+                      if (modpack.files[i].path.includes("mods/")) {
+                        files.downloadAsync(
                                 folder +
                                     "/mods/lr_" +
-                                    modpack.files[i].downloads[0].split("data/")[1].split("/versions")[0] +
-                                    "_LRMod.jar",
+                                    modpack.files[i].downloads[0].split("data/")[1].split("/versions")[0] + "_" +
+                                    modpack.files[i].path.split("mods/")[1].split(".jar")[0].replace("_", "-").replace(" ", "-")+".jar",
                         modpack.files[i].downloads[0],
                         () => {}
                       );
+                    }
             
                     }
                     //copy override mods over one again since sometimes it doesnt work
@@ -1474,12 +1476,19 @@ function deleteClientSideMods(id) {
   const list = fs.readFileSync("assets/clientsidemods.txt", "utf8").split("\n");
   for (let i = 0; i < folder.length; i++) {
     for (let j = 0; j < list.length; j++) {
-      if (folder[i].includes(list[j].split(":")[1])) {
+      const modName = folder[i].toLowerCase().replace(/-/g, "");
+const matchAgainst = list[j].toLowerCase().replace(/-/g, "").trim();
+
+if (modName.includes(matchAgainst)) {
+
+
+        console.log("deleting client side mod: " + folder[i]);
         fs.unlinkSync("servers/" + (idOffset + parseInt(id)) + "/mods/" + folder[i]);
       }
     }
   }
 }
+deleteClientSideMods(30);
 
 
 module.exports = {
