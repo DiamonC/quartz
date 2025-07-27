@@ -1282,7 +1282,7 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
                     );
 
                     //for each file in modpack.files, download it
-                    for (i in modpack.files) {
+for (i in modpack.files) {
                       //if the prefixhas a backslash, convert it to slash, as backslashes are ignored in linux
                       if (modpack.files[i].path.includes("\\")) {
                         modpack.files[i].prefix = modpack.files[i].path.replace(
@@ -1290,11 +1290,17 @@ function downloadModpack(id, modpackURL, modpackID, versionID) {
                           "/"
                         );
                       }
+                    
+                        console.log("downloading a mod")
                       files.downloadAsync(
-                        folder + "/" + modpack.files[i].path,
+                                folder +
+                                    "/mods/lr_" +
+                                    modpack.files[i].downloads[0].split("data/")[1].split("/versions")[0] +
+                                    "_LRMod.jar",
                         modpack.files[i].downloads[0],
                         () => {}
                       );
+            
                     }
                     //copy override mods over one again since sometimes it doesnt work
                     execSync(
