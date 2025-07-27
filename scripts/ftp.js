@@ -58,7 +58,7 @@ function startFtpServer() {
             mountArray.push(`-v "${users[i].split(":")[2]}:/home/${users[i].split(":")[0]}/server" `);
         }
         if (!usersArray.includes(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `)) {
-            usersArray.push(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:::server" `);
+            usersArray.push(`"${users[i].split(":")[0]}:${users[i].split(":")[1]}:1000:1000:::server" `);
         }
         }
     } catch (e) {
