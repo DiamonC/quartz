@@ -1200,7 +1200,9 @@ function readTerminal(id) {
     globalTerminalState[id] = { index: 0 };
   }
   let state = globalTerminalState[id];
-  
+  if (fullOutput === undefined) {
+    fullOutput = "";
+  }
   // Process only new content
   let newOutput = fullOutput.slice(state.index);
   state.index = fullOutput.length;
