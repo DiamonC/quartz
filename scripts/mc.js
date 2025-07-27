@@ -1488,7 +1488,7 @@ if (modName.includes(matchAgainst)) {
     }
   }
 }
-deleteClientSideMods(30);
+
 
 
 module.exports = {
