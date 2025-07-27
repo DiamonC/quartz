@@ -327,6 +327,7 @@ router.get(`/capacity`, function (req, res) {
       try {
         for (i in fs.readdirSync(`accounts`)) {
           if (
+            !fs.readdirSync(`accounts`)[i].includes("swp") &&
             readJSON(
               `accounts/${fs.readdirSync(`accounts`)[i]}`
             ).servers.includes(file)
