@@ -118,6 +118,73 @@ router.post(`/`, function (req, res) {
   }
 });
 
+router.post(`/icon`, upload.single("file"), function (req, res) { 
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let id = req.params.id;
+    if (req.file) {
+      //move the file to the server folder
+      fs.renameSync(req.file.path, `servers/${id}/server-icon.png`);
+      //if command "convert" exists, convert the icon to 64x64
+      if (fs.existsSync("/usr/bin/convert")) {
+        var sizeOf = require("image-size");
+        var dimensions = sizeOf(`servers/${id}/server-icon.png`);
+        console.log(dimensions.width, dimensions.height);
+        if (dimensions.width > 64 || dimensions.height > 64) {
+          //if the image is equal in width and height, convert it to 64x64
+          if (dimensions.width == dimensions.height) {
+            //convert the image to 64x64, make sure its not smaller, squish
+            exec(
+              `convert servers/${id}/server-icon.png -resize 64x64 servers/${id}/server-icon.png`,
+              (err, stdout, stderr) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log("icon resized");
+                }
+              }
+            );
+          } else if (dimensions.width > dimensions.height) {
+            let ratio = dimensions.width / dimensions.height;
+            let newWidth = 64 * ratio;
+            let newHeight = 64;
+            exec(
+              `convert servers/${id}/server-icon.png -resize ${newWidth}x${newHeight} -gravity center -crop 64x64+0+0 +repage servers/${id}/server-icon.png`,
+              (err, stdout, stderr) => {
+                if (err) {
+                  console.log(err);
+                }
+              }
+            );
+          } else if (dimensions.width < dimensions.height) {
+            //this doesnt work for some reason
+            let ratio = dimensions.height / dimensions.width;
+            let newWidth = 64;
+            let newHeight = 64 * ratio;
+            exec(
+              `convert servers/${id}/server-icon.png -resize ${newWidth}x${newHeight} -gravity center -crop 64x64+0+0 +repage servers/${id}/server-icon.png`,
+              (err, stdout, stderr) => {
+                if (err) {
+                  console.log(err);
+                }
+              }       
+            );
+          }
+        }
+      } else {
+        console.log("convert command not found, not converting image.");
+      }
+      res.status(200).json({ msg: `Success: Set server icon` });
+    } else {
+      res.status(400).json({ msg: `No file uploaded.` });
+    }
+  } else {
+    res.status(401).json({ msg: `Invalid credentials.` });
+  }
+});
+
 router.get(`/`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
