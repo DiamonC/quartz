@@ -25,7 +25,7 @@ router.post(`/`, function (req, res) {
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (utils.hasAccess(token, account, req.params.id)) {
     let id = req.params.id;
-    iconUrl = req.body.icon;
+
     desc = req.body.desc;
 
     if (req.body.newName != undefined && req.body.newName != "") {
@@ -65,53 +65,6 @@ router.post(`/`, function (req, res) {
       fs.writeFileSync(`servers/${id}/server.properties`, text);
     }
 
-    files.download(`servers/${id}/server-icon.png`, iconUrl);
-
-    //if command "convert" exists, convert the icon to 64x64
-    if (fs.existsSync("/usr/bin/convert")) {
-      if (fs.existsSync(`servers/${id}/server-icon.png`)) {
-        var sizeOf = require("image-size");
-        var dimensions = sizeOf(`servers/${id}/server-icon.png`);
-        console.log(dimensions.width, dimensions.height);
-        if (dimensions.width > 64 || dimensions.height > 64) {
-          //if the image is equal in width and height, convert it to 64x64
-          if (dimensions.width == dimensions.height) {
-            //convert the image to 64x64, make sure its not smaller, squish it if nesescary
-            exec(
-              `convert servers/${id}/server-icon.png -resize 64x64 servers/${id}/server-icon.png`,
-              (err, stdout, stderr) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  console.log("icon resized");
-                }
-              }
-            );
-          } else if (dimensions.width > dimensions.height) {
-            let ratio = dimensions.width / dimensions.height;
-
-            let newWidth = 64 * ratio;
-            let newHeight = 64;
-
-            exec(
-              `convert servers/${id}/server-icon.png -resize ${newWidth}x${newHeight} -gravity center -crop 64x64+0+0 +repage servers/${id}/server-icon.png`,
-              (err, stdout, stderr) => {
-                if (err) {
-                  console.log(err);
-                }
-              }
-            );
-          } else if (dimensions.width < dimensions.height) {
-            //this doesnt work for some reason
-          }
-        }
-      }
-    } else {
-      console.log("convert command not found, not converting image.");
-    }
-
-    //add iconurl.txt to the server folder with the icon url
-    fs.writeFileSync(`servers/${id}/iconurl.txt`, iconUrl);
     res.status(200).json({ msg: `Success: Set server info` });
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
@@ -125,60 +78,38 @@ router.post(`/icon`, upload.single("file"), function (req, res) {
   if (utils.hasAccess(token, account, req.params.id)) {
     let id = req.params.id;
     if (req.file) {
+      var sizeOf = require("image-size");
+      var dimensions = sizeOf(req.file.path);
+
       //move the file to the server folder
+      if (dimensions.width == 64 || dimensions.height == 64) {
       fs.renameSync(req.file.path, `servers/${id}/server-icon.png`);
-      //if command "convert" exists, convert the icon to 64x64
-      if (fs.existsSync("/usr/bin/convert")) {
-        var sizeOf = require("image-size");
-        var dimensions = sizeOf(`servers/${id}/server-icon.png`);
-        console.log(dimensions.width, dimensions.height);
-        if (dimensions.width > 64 || dimensions.height > 64) {
-          //if the image is equal in width and height, convert it to 64x64
-          if (dimensions.width == dimensions.height) {
-            //convert the image to 64x64, make sure its not smaller, squish
-            exec(
-              `convert servers/${id}/server-icon.png -resize 64x64 servers/${id}/server-icon.png`,
-              (err, stdout, stderr) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  console.log("icon resized");
-                }
-              }
-            );
-          } else if (dimensions.width > dimensions.height) {
-            let ratio = dimensions.width / dimensions.height;
-            let newWidth = 64 * ratio;
-            let newHeight = 64;
-            exec(
-              `convert servers/${id}/server-icon.png -resize ${newWidth}x${newHeight} -gravity center -crop 64x64+0+0 +repage servers/${id}/server-icon.png`,
-              (err, stdout, stderr) => {
-                if (err) {
-                  console.log(err);
-                }
-              }
-            );
-          } else if (dimensions.width < dimensions.height) {
-            //this doesnt work for some reason
-            let ratio = dimensions.height / dimensions.width;
-            let newWidth = 64;
-            let newHeight = 64 * ratio;
-            exec(
-              `convert servers/${id}/server-icon.png -resize ${newWidth}x${newHeight} -gravity center -crop 64x64+0+0 +repage servers/${id}/server-icon.png`,
-              (err, stdout, stderr) => {
-                if (err) {
-                  console.log(err);
-                }
-              }       
-            );
-          }
-        }
+            res.status(200).json({ msg: `Success: Set server icon` });
       } else {
-        console.log("convert command not found, not converting image.");
+        fs.unlinkSync(req.file.path);
+        res.status(400).json({
+          msg: `Error: Icon must be 64x64 pixels. Current size: ${dimensions.width}x${dimensions.height}`,
+        });
       }
-      res.status(200).json({ msg: `Success: Set server icon` });
+
     } else {
       res.status(400).json({ msg: `No file uploaded.` });
+    }
+  } else {
+    res.status(401).json({ msg: `Invalid credentials.` });
+  }
+});
+
+router.get(`/icon`, function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    let id = req.params.id;
+    if (fs.existsSync(`servers/${id}/server-icon.png`)) {
+      res.sendFile(path.join(__dirname, `../../servers/${id}/server-icon.png`));
+    } else {
+      res.status(404).json({ msg: `No icon found for this server.` });
     }
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
@@ -191,8 +122,7 @@ router.get(`/`, function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON("servers/" + req.params.id + "/server.json");
   if (utils.hasAccess(token, account, req.params.id)) {
-    //send the motd and iconUrl
-    let iconUrl = "/images/placeholder.webp";
+ 
     let desc = "";
     let secret;
     let proxiesEnabled;
@@ -251,9 +181,7 @@ router.get(`/`, function (req, res) {
       }
     }
 
-    if (fs.existsSync(`servers/${id}/iconurl.txt`)) {
-      iconUrl = fs.readFileSync(`servers/${id}/iconurl.txt`).toString();
-    }
+   
 
     let automaticStartup = false;
 try {
@@ -281,7 +209,7 @@ try {
     
     res.status(200).json({
       msg: `Success: Got server info`,
-      iconUrl: iconUrl,
+   
       desc: desc,
       secret: secret,
       proxiesEnabled: proxiesEnabled,
