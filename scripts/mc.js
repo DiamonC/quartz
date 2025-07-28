@@ -181,6 +181,13 @@ function run(
       software = server.software;
       version = server.version;
       addons = server.addons;
+    } else {
+      if (fs.existsSync("assets/template/default-server-icon.png")) {
+        fs.copyFileSync(
+          "assets/template/default-server-icon.png",
+          "servers/" + id + "/server-icon.png"
+        );
+      }
     }
 
     for (i in cmd) {

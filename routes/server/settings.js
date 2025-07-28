@@ -109,7 +109,7 @@ router.get(`/icon`, function (req, res) {
     if (fs.existsSync(`servers/${id}/server-icon.png`)) {
       res.sendFile(path.join(__dirname, `../../servers/${id}/server-icon.png`));
     } else {
-      res.status(404).json({ msg: `No icon found for this server.` });
+      res.sendFile(path.join(__dirname, `../../assets/template/default-server-icon.png`));
     }
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
