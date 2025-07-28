@@ -123,6 +123,10 @@ function checkServer(id) {
     console.log("setting status of " + id + " to false on line #2");
   }
   let server = readJSON("servers/" + id + "/server.json");
+  //detect if geyser is installed, add to specialPlugins
+  if (fs.existsSync(`servers/${id}/plugins/cx_geyser-spigot_Geyser.jar`)) {
+    server.specialPlugins.push("geyser");
+  }
   return {
     version: server.version,
     software: server.software,
