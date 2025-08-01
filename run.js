@@ -926,6 +926,20 @@ app.use("/curseforge", require("./routes/curseforge"));
 app.use("/translate", require("./routes/translate"));
 app.use("/node", require("./routes/node"));
 
+//support for extensions
+
+const extensionsPath = path.join(__dirname, 'extensions');
+if (fs.existsSync(extensionsPath)) {
+  fs.readdirSync(extensionsPath).forEach(file => {
+    if (file.endsWith('.js')) {
+      const extRouter = require(path.join(extensionsPath, file));
+      const routeName = file.replace('.js', '');
+      app.use(`/x/${routeName}`, extRouter);
+      console.log(`Loaded extension: /x/${routeName}`);
+    }
+  });
+}
+
 const adminApp = express();
 const adminPort = process.env.ADMIN_PORT || 4001;
 

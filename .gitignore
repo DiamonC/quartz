@@ -29,3 +29,4 @@ assets/terminal-log.txt
 crashLog.txt
 /logs
 /trashbin
+/extensions/*
