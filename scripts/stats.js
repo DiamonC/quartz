@@ -2,6 +2,7 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 const execPromise = promisify(exec);
 const fs = require('fs');
+const config = require('./utils.js').getConfig();   
 
 const servers = [];
 
@@ -71,8 +72,10 @@ async function cycle() {
 }
 
 // Run immediately, then every 15 seconds
-cycle();
+if (config.dockerMode == "true" || config.dockerMode == true) {
+    cycle();
 setInterval(cycle, 1000 * 15);
+}
 
 function getLiveStats(serverId) {
     return stats["server_" + serverId] || [];
