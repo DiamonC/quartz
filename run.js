@@ -925,6 +925,7 @@ app.use("/accounts", require("./routes/accounts"));
 app.use("/curseforge", require("./routes/curseforge"));
 app.use("/translate", require("./routes/translate"));
 app.use("/node", require("./routes/node"));
+app.use("/referrals", require("./routes/referrals"));
 
 //support for extensions
 
