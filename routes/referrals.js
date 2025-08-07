@@ -63,7 +63,20 @@ Router.get("/referrer_coupon/:id", async (req, res) => {
     });
 
     const used = invoices.data.some(inv => inv.discount?.coupon?.id === couponId);
-    res.send({ used });
+    if (used) {
+        //create a new coupon
+        let newId = "coupon_" + (() => Math.random().toString(36).slice(2, 2 + 8))();
+        stripe.coupons.create({
+          id: newId,
+          percent_off: 50,
+          duration: "once",
+          name: newId,
+        });
+        res.send({ used, coupon: newId });
+
+    } else {
+    res.send({ used, coupon: null });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).send("Error checking coupon usage");
