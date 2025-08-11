@@ -36,7 +36,7 @@ Router.get("/referred_coupon", async (req, res) => {
   try {
     await stripe.coupons.create({
       id: couponId,
-      percent_off: 50,
+      percent_off: 40,
       duration: "once",
       name: couponId,
     });
@@ -70,7 +70,7 @@ Router.get("/referrer_coupon/:id", async (req, res) => {
         let newId = "coupon_" + (() => Math.random().toString(36).slice(2, 2 + 8))();
         stripe.coupons.create({
           id: newId,
-          percent_off: 50,
+          percent_off: 40,
           duration: "once",
           name: newId,
         });
@@ -141,7 +141,7 @@ Router.get('/price', async (req, res) => {
       const sub = subscriptions.data[0];
       const item = sub.items.data[0];
       let price = `${(item.price.unit_amount / 100).toFixed(2)} ${item.price.currency.toUpperCase()}`;
-    let halfOff = `${(Math.floor((item.price.unit_amount / 100 / 2) * 100) / 100).toFixed(2)} ${item.price.currency.toUpperCase()}`;
+    let halfOff = `${(Math.floor((item.price.unit_amount / 100 * 0.4) * 100) / 100).toFixed(2)} ${item.price.currency.toUpperCase()}`;
 
       res.json({
         price_id: item.price.id,
