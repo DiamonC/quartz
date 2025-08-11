@@ -141,7 +141,7 @@ Router.get('/price', async (req, res) => {
       const sub = subscriptions.data[0];
       const item = sub.items.data[0];
       let price = `${(item.price.unit_amount / 100).toFixed(2)} ${item.price.currency.toUpperCase()}`;
-    let halfOff = `${(Math.floor((item.price.unit_amount / 100 * 0.4) * 100) / 100).toFixed(2)} ${item.price.currency.toUpperCase()}`;
+    let halfOff = `${(Math.floor((item.price.unit_amount / 100 * 0.6) * 100) / 100).toFixed(2)} ${item.price.currency.toUpperCase()}`;
 
       res.json({
         price_id: item.price.id,
