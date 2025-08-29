@@ -414,7 +414,7 @@ try {
                 );
                 //sometimes a empty folder is left behind, so we delete it
                 if (fs.existsSync(`servers/${data[i].serverId}`)) {
-                  fs.rmdirSync(`servers/${data[i].serverId}`, { recursive: true });
+                  fs.rmSync(`servers/${data[i].serverId}`, { recursive: true, force: true });
                 }
 
                 //in the accoount file, add :freed to the serverId
