@@ -426,6 +426,9 @@ try {
                   account.servers.push(data[i].serverId + ":freed");
                   writeJSON(`accounts/${data[i].owner}`, account);
                 }
+              } else if (fs.existsSync(`servers/${data[i].serverId}`)) {
+                console.log("Deleting empty server folder " + data[i].serverId);
+                fs.rmSync(`servers/${data[i].serverId}`, { recursive: true, force: true });
               }
 } catch (e) {
   console.log("Error moving server to trashbin " + data[i].serverId);
