@@ -48,17 +48,16 @@ function checkSubscription(email) {
     });
   }, 5000);
 }
-//get the last 4 digits of customer's card ( )
-async function getCreditId(email) {
+
+//get the day when the customer was created
+async function getCustomerCreationDate(email) {
   const cid = await getCustomerID(email);
   try {
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: cid,
-      type: "card",
-    });
-    return paymentMethods.data[0].card.last4;
+    const customer = await stripe.customers.retrieve(cid);
+    console.log(customer);
+    return customer.created;
   } catch (err) {
-    console.log("Error retrieving customer payment method:", err);
+    console.log("Error retrieving customer creation date:", err);
     return null;
   }
 }

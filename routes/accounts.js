@@ -219,13 +219,19 @@ Router.post("/email/resetPassword/", async (req, res) => {
   let email = req.query.email;
   if (email.includes("email:")) email = email.replace("email:", "");
   let confirmPassword = req.body.confPassword;
-  let last4 = req.query.last4;
+  let created2 = req.query.created;
   let account = readJSON("accounts/email:" + email + ".json");
 
   try {
-    const creditId = await s.getCreditId(email);
+    const created = await s.getCustomerCreationDate(email);
     if (account.resetAttempts < 5) {
-      if (creditId === last4 || config.providerMode === false) {
+      let sameDay = false;
+      //created and created2 are in unix time. If the calendar day is the same, true
+      if (new Date(created * 1000).toDateString() === new Date(created2 * 1000).toDateString()) {
+        sameDay = true;
+      }
+      console.log("sameDay " + sameDay)
+      if (sameDay || config.providerMode === false) {
         if (password == confirmPassword) {
           if (password.length >= 7) {
             [salt, password] = files.hash(password).split(":");
@@ -247,7 +253,7 @@ Router.post("/email/resetPassword/", async (req, res) => {
         account.resetAttempts++;
         res.status(400).send({
           success: false,
-          reason: "Wrong last 4 digits",
+          reason: "Wrong creation date",
           attempts: account.resetAttempts,
         });
       }
