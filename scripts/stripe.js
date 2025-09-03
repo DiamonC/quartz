@@ -190,4 +190,4 @@ async function getSubscriptions(email) {
   }
 }
 
-module.exports = { getCustomerID, checkSubscription, getCreditId, getCustomers, getSubscriptions};
+module.exports = { getCustomerID, checkSubscription, getCustomers, getSubscriptions, getCustomerCreationDate };
