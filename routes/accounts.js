@@ -123,6 +123,7 @@ Router.post("/email/signin/", (req, res) => {
   let salt = account.salt;
   let cloudflareVerifyToken = req.query.cloudflareVerifyToken;
   if (enableCloudflareVerify) {
+    console.log(account.password, files.hash(password, salt).split(":")[1]);
     if (account.password != files.hash(password, salt).split(":")[1]) {
       res.status(400).send({ token: -1, reason: "Incorrect email or password" });
     } else {
