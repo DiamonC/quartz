@@ -445,4 +445,38 @@ try {
       }, 1000 * 60);
 }
 
-module.exports = { getConfig, readJSON, writeJSON, refreshPermissions, hasAccess, sanitizePath, checkSubscriptions};
+const subdomainCleanup = require('./subdomainCleanup');
+
+/**
+ * Run periodic tasks including subscription checks and subdomain cleanup
+ */
+function runPeriodicTasks() {
+  console.log('Running periodic tasks...');
+  
+  // Check subscriptions
+  checkSubscriptions();
+  
+  // Schedule subdomain cleanup to run after subscription check completes
+  setTimeout(() => {
+    try {
+      // Run subdomain cleanup
+      subdomainCleanup.cleanupInactiveSubdomains();
+    } catch (error) {
+      console.error('Error running subdomain cleanup:', error);
+    }
+  }, 1000 * 90); // Run 90 seconds after subscription check starts (30 seconds after it should complete)
+  
+  // Schedule next run (every 24 hours)
+  setTimeout(runPeriodicTasks, 1000 * 60 * 60 * 24);
+}
+
+module.exports = { 
+  getConfig, 
+  readJSON, 
+  writeJSON, 
+  refreshPermissions, 
+  hasAccess, 
+  sanitizePath, 
+  checkSubscriptions,
+  runPeriodicTasks
+};
