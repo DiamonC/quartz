@@ -106,7 +106,7 @@ async function cleanupInactiveSubdomains() {
   console.log('Starting subdomain cleanup for inactive subscriptions...');
   
   // Load configuration
-  const config = utils.getConfig();
+const config = require("./utils.js").getConfig();
   
   if (!config.cloudflareKey || !config.cloudflareEmail || !config.cloudflareZone) {
     console.error('Cloudflare configuration missing. Skipping subdomain cleanup.');
