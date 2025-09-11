@@ -180,9 +180,10 @@ if (!fs.existsSync("./backup/disabledServers")) {
 
 
 
-const readJSON = require("./scripts/utils.js").readJSON;
-const writeJSON = require("./scripts/utils.js").writeJSON;
-const checkSubscriptions = require("./scripts/utils.js").checkSubscriptions;
+const utils = require("./scripts/utils.js");
+const readJSON = utils.readJSON;
+const writeJSON = utils.writeJSON;
+const checkSubscriptions = utils.checkSubscriptions;
 
 //Migration from old file-based servers & accounts format from 1.2 to the 1.3 folder-based one
 if (fs.existsSync("accounts.json") && fs.existsSync("servers.json")) {
@@ -250,6 +251,8 @@ const datajson = readJSON("./assets/data.json");
 if (Date.now() - datajson.lastUpdate > 1000 * 60 * 60 * 6) {
   downloadJars("partial");
   checkSubscriptions();
+  // Start periodic tasks (includes subscription checks and subdomain cleanup)
+  utils.runPeriodicTasks();
   backup();
   refreshTempToken();
   refreshFileAccess();
@@ -261,6 +264,8 @@ setInterval(() => {
 setInterval(() => {
 
   checkSubscriptions();
+  // Start periodic tasks (includes subscription checks and subdomain cleanup)
+  utils.runPeriodicTasks();
   backup();
   refreshTempToken();
   refreshFileAccess();
@@ -580,7 +585,7 @@ process.stdin.on("data", (data) => {
       process.exit(0);
     case "help":
       console.log(
-        "Commands:\nstop\nend\nexit\nbackup\nnumServersOnline\ngetServerOwner\ngetDashboardToken\nscanAccountIds\nscanAccountServers\nbroadcast\nhelp\nclear - clears the terminal\nrefresh - downloads the latest jars, gets the latest version and verifies subscriptions. This automatically runs every 12 hours.\n"
+        "Commands:\nstop\nend\nexit\nbackup\nnumServersOnline\ngetServerOwner\ngetDashboardToken\nscanAccountIds\nscanAccountServers\nbroadcast\nhelp\nclear - clears the terminal\nrefresh - downloads the latest jars, gets the latest version, verifies subscriptions, and cleans up inactive subdomains. This automatically runs every 12 hours.\ncleanupSubdomains - manually triggers the subdomain cleanup process\n"
       );
       break;
     case "backup":
@@ -715,11 +720,12 @@ process.stdin.on("data", (data) => {
     case "refresh":
       downloadJars("full");
       checkSubscriptions();
+      utils.runPeriodicTasks();
       refreshTempToken();
       removeUnusedAccounts();
       refreshFileAccess();
       
-      console.log("downloading latest jars and verifying subscriptions...");
+      console.log("downloading latest jars, verifying subscriptions, and cleaning up subdomains...");
       break;
     case "scanAccountIds":
       fs.readdirSync("accounts").forEach((file) => {
@@ -740,6 +746,11 @@ process.stdin.on("data", (data) => {
           console.log("error scanning account " + file);
         }
       });
+      break;
+    case "cleanupSubdomains":
+      console.log("Manually triggering subdomain cleanup...");
+      const subdomainCleanup = require('./scripts/subdomainCleanup');
+      subdomainCleanup.cleanupInactiveSubdomains();
       break;
     default:
       if (!userInput) {
