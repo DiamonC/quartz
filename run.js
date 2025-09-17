@@ -1,27 +1,32 @@
-// Override console.log to consolidate duplicate logs
+// Override console.log to consolidate duplicate logs and append timestamps
 (function () {
   const originalLog = console.log;
   const logCache = { lastMessage: null, count: 0 };
+
+  function getTimestamp() {
+    return new Date().toISOString().replace("T", " ").split(".")[0];
+  }
 
   console.log = function (message, ...optionalParams) {
     if (logCache.lastMessage === message) {
       logCache.count++;
     } else {
       if (logCache.count > 0) {
-        originalLog(`${logCache.lastMessage} (repeated ${logCache.count} times)`);
+        originalLog(`[${getTimestamp()}] ${logCache.lastMessage} (repeated ${logCache.count} times)`);
       }
       logCache.lastMessage = message;
       logCache.count = 0;
-      originalLog(message, ...optionalParams);
+      originalLog(`[${getTimestamp()}] ${message}`, ...optionalParams);
     }
   };
 
-  process.on('exit', () => {
+  process.on("exit", () => {
     if (logCache.count > 0) {
-      originalLog(`${logCache.lastMessage} (repeated ${logCache.count} times)`);
+      originalLog(`[${getTimestamp()}] ${logCache.lastMessage} (repeated ${logCache.count} times)`);
     }
   });
 })();
+
 
 // importing packages
 const express = require("express");
