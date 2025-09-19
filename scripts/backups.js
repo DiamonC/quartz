@@ -51,35 +51,87 @@ async function getBackupsFolderSize() {
   }
 }
 
+
+
+// Helper: get total size of directory
+async function getDirSize(dir) {
+let total = 0;
+const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+for (const entry of entries) {
+const fullPath = path.join(dir, entry.name);
+if (entry.isDirectory()) {
+total += await getDirSize(fullPath);
+} else {
+const stats = await fs.promises.stat(fullPath);
+total += stats.size;
+}
+}
+return total;
+}
+
+
+// Backup function with progress estimation
 async function runZip(serverId, timestamp) {
+const srcPath = `./servers/${serverId}/world`;
+const destDir = `./backups/${serverId}`;
+const destFile = path.join(destDir, `${timestamp}.zip`);
+
+
+await fs.promises.mkdir(destDir, { recursive: true });
+
+
+// Get total size before starting
+let totalSize = 0;
+try {
+totalSize = await getDirSize(srcPath);
+} catch (err) {
+console.error(`Failed to calculate size for ${serverId}:`, err);
+}
+
+
 return new Promise((resolve, reject) => {
-console.log(`Starting backup for server ${serverId}...`);
-const zip = spawn("zip", [
-"-r",
-`./backups/${serverId}/${timestamp}.zip`,
-`./servers/${serverId}/world`,
-]);
+let processedSize = 0;
+const zip = spawn("zip", ["-r", "-v", destFile, "world"], { cwd: `./servers/${serverId}` });
 
 
-const progressLogger = setInterval(() => {
-console.log(`Backup for server ${serverId} is still running...`);
+const progressTimer = setInterval(() => {
+if (totalSize > 0) {
+const percent = ((processedSize / totalSize) * 100).toFixed(2);
+console.log(`[${serverId}] Backup progress: ${percent}%`);
+} else {
+console.log(`[${serverId}] Backup still running...`);
+}
 }, 30000);
 
 
-zip.on("close", (code) => {
-clearInterval(progressLogger);
-if (code === 0 || code === 12) {
-console.log(`Successfully backed up server ${serverId}`);
-resolve();
-} else {
-reject(new Error(`Zip failed with code ${code}`));
+zip.stdout.on("data", async (data) => {
+const line = data.toString();
+const match = line.match(/\s*adding: (.+)/);
+if (match) {
+const filePath = path.join(srcPath, match[1].trim());
+try {
+const stats = await fs.promises.stat(filePath);
+processedSize += stats.size;
+} catch (e) {
+// ignore missing files
+}
 }
 });
 
 
-zip.on("error", (err) => {
-clearInterval(progressLogger);
-reject(err);
+zip.stderr.on("data", (data) => {
+console.error(`[${serverId}] zip error: ${data}`);
+});
+
+
+zip.on("close", (code) => {
+clearInterval(progressTimer);
+if (code === 0 || code === 12) {
+console.log(`[${serverId}] Backup complete: ${destFile}`);
+resolve();
+} else {
+reject(new Error(`zip exited with code ${code}`));
+}
 });
 });
 }
