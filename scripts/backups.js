@@ -77,7 +77,7 @@ setTimeout(() => {
   if (backupFolder.length >= backupSlots) {
     let amountToDelete = backupFolder.length - backupSlots;
     console.log(backupFolder.length + " " + backupSlots + " amount to delete: " + amountToDelete);
-    for (let j = 0; j <= amountToDelete; j++) {
+    for (let j = 0; j < amountToDelete; j++) {
       fs.rmSync(`./backups/${servers[i]}/${backupFolder[j]}`, {
         recursive: true,
       });
