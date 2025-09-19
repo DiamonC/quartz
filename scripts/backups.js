@@ -76,7 +76,7 @@ async function runZip(serverId, timestamp) {
 const srcPath = `./servers/${serverId}/world`;
 const destDir = `./backups/${serverId}`;
 const destFile = path.join(destDir, `${timestamp}.zip`);
-
+console.log(destFile);
 
 await fs.promises.mkdir(destDir, { recursive: true });
 
