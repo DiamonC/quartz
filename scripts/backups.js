@@ -1,10 +1,8 @@
 const { spawn, exec } = require("child_process");
 const { promisify } = require("util");
-const path = require("path");
 const execPromise = promisify(exec);
 const fs = require("fs").promises;
 const security = require("./security");
-const fsp = require("fs").promises;
 
 const servers = [];
 
@@ -53,91 +51,35 @@ async function getBackupsFolderSize() {
   }
 }
 
-
-
-// Helper: get total size of directory
-async function getDirSize(dir) {
-try {
-  let total = 0;
-const entries = await fsp.readdir(dir, { withFileTypes: true });
-for (const entry of entries) {
-const fullPath = path.join(dir, entry.name);
-if (entry.isDirectory()) {
-total += await getDirSize(fullPath);
-} else {
-const stats = await fsp.stat(fullPath);
-total += stats.size;
-}
-}
-return total;
-} catch (err) { 
-  return 0;
-}
-}
-
-
-// Backup function with progress estimation
 async function runZip(serverId, timestamp) {
-const srcPath = `./servers/${serverId}/world`;
-const destDir = `./backups/${serverId}`;
-const destFile = path.join(destDir, `${timestamp}.zip`);
-console.log(destFile);
-
-await fsp.mkdir(destDir, { recursive: true });
-
-
-// Get total size before starting
-let totalSize = 0;
-try {
-totalSize = await getDirSize(srcPath);
-} catch (err) {
-console.error(`Failed to calculate size for ${serverId}:`, err);
-}
-
-
 return new Promise((resolve, reject) => {
-let processedSize = 0;
-const zip = spawn("zip", ["-r", "-v", destFile, "world"], { cwd: `./servers/${serverId}` });
+console.log(`Starting backup for server ${serverId}...`);
+const zip = spawn("zip", [
+"-r",
+`./backups/${serverId}/${timestamp}.zip`,
+`./servers/${serverId}/world`,
+]);
 
 
-const progressTimer = setInterval(() => {
-if (totalSize > 0) {
-const percent = ((processedSize / totalSize) * 100).toFixed(2);
-console.log(`[${serverId}] Backup progress: ${percent}%`);
-} else {
-console.log(`[${serverId}] Backup still running...`);
-}
+const progressLogger = setInterval(() => {
+console.log(`Backup for server ${serverId} is still running...`);
 }, 30000);
 
 
-zip.stdout.on("data", async (data) => {
-const line = data.toString();
-const match = line.match(/\s*adding: (.+)/);
-if (match) {
-const filePath = path.join(srcPath, match[1].trim());
-try {
-const stats = await fsp.stat(filePath);
-processedSize += stats.size;
-} catch (e) {
-// ignore missing files
-}
-}
-});
-
-
-zip.stderr.on("data", (data) => {
-console.error(`[${serverId}] zip error: ${data}`);
-});
-
-
 zip.on("close", (code) => {
-clearInterval(progressTimer);
+clearInterval(progressLogger);
 if (code === 0 || code === 12) {
-console.log(`[${serverId}] Backup complete: ${destFile}`);
+console.log(`Successfully backed up server ${serverId}`);
 resolve();
 } else {
-reject(new Error(`zip exited with code ${code}`));
+reject(new Error(`Zip failed with code ${code}`));
 }
+});
+
+
+zip.on("error", (err) => {
+clearInterval(progressLogger);
+reject(err);
 });
 });
 }
