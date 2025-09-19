@@ -71,12 +71,12 @@ setTimeout(() => {
   if (!fs.existsSync(`./backups/${servers[i]}`)) {
     fs.mkdirSync(`./backups/${servers[i]}`);
   }
-  console.log(`./backups/${servers[i]}`);
+
   let backupFolder = fs.readdirSync(`./backups/${servers[i]}`);
-  console.log(backupFolder);
+
   if (backupFolder.length >= backupSlots) {
     let amountToDelete = backupFolder.length - backupSlots;
-    console.log(backupFolder.length + " " + backupSlots + " amount to delete: " + amountToDelete);
+
     for (let j = 0; j < amountToDelete; j++) {
       fs.rmSync(`./backups/${servers[i]}/${backupFolder[j]}`, {
         recursive: true,
