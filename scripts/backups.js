@@ -52,26 +52,36 @@ async function getBackupsFolderSize() {
 }
 
 async function runZip(serverId, timestamp) {
-  return new Promise((resolve, reject) => {
-    const zip = spawn("zip", [
-      "-r",
-      `./backups/${serverId}/${timestamp}.zip`,
-      `./servers/${serverId}/world`,
-    ]);
-    //log exact command being run
-    console.log(
-      `zip -r ./backups/${serverId}/${timestamp}.zip ./servers/${serverId}/world`
-    );
+return new Promise((resolve, reject) => {
+console.log(`Starting backup for server ${serverId}...`);
+const zip = spawn("zip", [
+"-r",
+`./backups/${serverId}/${timestamp}.zip`,
+`./servers/${serverId}/world`,
+]);
 
-    zip.on("close", (code) => {
-      if (code === 0) {
-        console.log(`Successfully backed up server ${serverId}`);
-        resolve();
-      } else {
-        reject(new Error(`Zip failed with code ${code}`));
-      }
-    });
-  });
+
+const progressLogger = setInterval(() => {
+console.log(`Backup for server ${serverId} is still running...`);
+}, 30000);
+
+
+zip.on("close", (code) => {
+clearInterval(progressLogger);
+if (code === 0 || code === 12) {
+console.log(`Successfully backed up server ${serverId}`);
+resolve();
+} else {
+reject(new Error(`Zip failed with code ${code}`));
+}
+});
+
+
+zip.on("error", (err) => {
+clearInterval(progressLogger);
+reject(err);
+});
+});
 }
 
 async function cycle() {
