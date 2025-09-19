@@ -1,106 +1,121 @@
-const { exec } = require("child_process");
+const { spawn, exec } = require("child_process");
 const { promisify } = require("util");
 const execPromise = promisify(exec);
-const fs = require("fs");
-const { ref } = require("process");
-const crypto = require("crypto");
+const fs = require("fs").promises;
 const security = require("./security");
 
 const servers = [];
 
-if (!fs.existsSync("./backups")) {
-  fs.mkdirSync("./backups");
+(async () => {
+  try {
+    await fs.access("./backups");
+  } catch {
+    await fs.mkdir("./backups");
+  }
+})();
+
+async function getServerIds() {
+  const items = await fs.readdir("./servers");
+  return items.filter((x) => !isNaN(x)).map((x) => parseInt(x));
 }
 
+async function getWorldsTotalSize() {
+  try {
+    const { stdout } = await execPromise(
+      "du -c servers/*/world --max-depth=0 | tail -n 1"
+    );
+    return parseInt(stdout.split("\t")[0]) * 1024;
+  } catch (err) {
+    console.error("Error getting total world size:", err.message);
+    return 0;
+  }
+}
 
+async function getSpaceAvailable() {
+  try {
+    const { stdout } = await execPromise("df --output=avail / | tail -n 1");
+    return parseInt(stdout) * 1024;
+  } catch (err) {
+    console.error("Error getting available space:", err.message);
+    return 0;
+  }
+}
 
-function cycle() {
+async function getBackupsFolderSize() {
+  try {
+    const { stdout } = await execPromise("du -c backups | tail -n 1");
+    return parseInt(stdout.split("\t")[0]);
+  } catch (err) {
+    console.error("Error getting total backups size:", err.message);
+    return 0;
+  }
+}
 
-  let serverFolderItems = fs.readdirSync("./servers");
-  for (let i = 0; i < serverFolderItems.length; i++) {
-    if (!isNaN(serverFolderItems[i])) {
-      servers.push(parseInt(serverFolderItems[i]));
-    }
+async function runZip(serverId, timestamp) {
+  return new Promise((resolve, reject) => {
+    const zip = spawn("zip", [
+      "-r",
+      `./backups/${serverId}/${timestamp}.zip`,
+      `./servers/${serverId}/world`,
+    ]);
+
+    zip.on("close", (code) => {
+      if (code === 0) {
+        console.log(`Successfully backed up server ${serverId}`);
+        resolve();
+      } else {
+        reject(new Error(`Zip failed with code ${code}`));
+      }
+    });
+  });
+}
+
+async function cycle() {
+  const serverIds = await getServerIds();
+  const serverWorldsTotalSize = await getWorldsTotalSize();
+  const spaceAvailableOnSystem = await getSpaceAvailable();
+  const backupsFolderSize = await getBackupsFolderSize();
+
+  if (serverWorldsTotalSize === 0) {
+    console.log("No server worlds found to back up.");
+    return;
   }
 
-  let serverWorldsTotalSize = 0;
-
-  exec(
-    "du -c servers/*/world --max-depth=0 | tail -n 1",
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error getting total world size: ${stderr}`);
-        return;
-      }
-      serverWorldsTotalSize = parseInt(stdout.split("\t")[0]) * 1024;
-    }
-  );
-
-  let spaceAvailableOnSystem = 0;
-  exec("df --output=avail / | tail -n 1", (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error getting available space: ${stderr}`);
-      return;
-    }
-    spaceAvailableOnSystem = parseInt(stdout) * 1024;
-  });
-
-  let backupsFolderSize = 0;
-  exec("du -c backups | tail -n 1", (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error getting total backups size: ${stderr}`);
-      return;
-    }
-    backupsFolderSize = parseInt(stdout.split("\t")[0]);
-  });
-
-  let backupSlots = 0;
-  setTimeout(() => {
-    backupSlots = (
-      (spaceAvailableOnSystem - 10 * 1024 * 1024 * 1024 + backupsFolderSize) /
+  const backupSlots = Math.floor(
+    (spaceAvailableOnSystem - 10 * 1024 * 1024 * 1024 + backupsFolderSize) /
       serverWorldsTotalSize
-    ).toFixed(0);
-    console.log("BACKUP SLOTS: " + backupSlots);
-  }, 1000);
-
-  setTimeout(() => {
-    console.log("Running backup cycle...");
-    for (let i = 0; i < servers.length; i++) {
-      //if we dont space out backups the website will be unreachable for a few minutes.
-setTimeout(() => {
-  if (!fs.existsSync(`./backups/${servers[i]}`)) {
-    fs.mkdirSync(`./backups/${servers[i]}`);
-  }
-
-  let backupFolder = fs.readdirSync(`./backups/${servers[i]}`);
-
-  if (backupFolder.length >= backupSlots) {
-    let amountToDelete = backupFolder.length - backupSlots;
-
-    for (let j = 0; j < amountToDelete; j++) {
-      fs.rmSync(`./backups/${servers[i]}/${backupFolder[j]}`, {
-        recursive: true,
-      });
-    }
-  }
-  //backup by zipping the world folder
-  const timestamp = Date.now();
-  exec(
-    `zip -r ./backups/${servers[i]}/${timestamp}.zip ./servers/${servers[i]}/world`,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error zipping world folder: ${stderr}`);
-        return;
-      }
-      console.log(`Successfully backed up server ${servers[i]}`);
-    }
   );
-}, 1000 * i);
+
+  console.log("BACKUP SLOTS:", backupSlots);
+  console.log("Running backup cycle...");
+
+  for (let i = 0; i < serverIds.length; i++) {
+    const serverId = serverIds[i];
+    await fs.mkdir(`./backups/${serverId}`, { recursive: true });
+
+    const backupFolder = await fs.readdir(`./backups/${serverId}`);
+
+    if (backupFolder.length >= backupSlots) {
+      const amountToDelete = backupFolder.length - backupSlots;
+      const sorted = backupFolder.sort();
+
+      for (let j = 0; j < amountToDelete; j++) {
+        await fs.rm(`./backups/${serverId}/${sorted[j]}`, {
+          recursive: true,
+          force: true,
+        });
+      }
     }
-  }, 5000);
+
+    const timestamp = Date.now();
+    try {
+      await runZip(serverId, timestamp);
+    } catch (err) {
+      console.error(`Error backing up server ${serverId}:`, err.message);
+    }
+  }
 }
 
-//get the time and make it so it backs up every day at 12am, 6am, 12pm and 6pm uTC
 function scheduleCycleAtUTC(hoursArray) {
   const now = new Date();
   const nowUTC = new Date(
@@ -117,45 +132,38 @@ function scheduleCycleAtUTC(hoursArray) {
 
   const nextTimes = hoursArray.map((h) => {
     const target = new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-        h,
-        0,
-        0,
-        0
-      )
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h)
     );
     if (target <= nowUTC) {
-      target.setUTCDate(target.getUTCDate() + 1); // next day
+      target.setUTCDate(target.getUTCDate() + 1);
     }
     return target - nowUTC;
   });
 
   const millisTillNext = Math.min(...nextTimes);
 
-
   setTimeout(() => {
     cycle();
-    setInterval(cycle, 6 * 60 * 60 * 1000); // every 6 hours
+    setInterval(cycle, 6 * 60 * 60 * 1000);
   }, millisTillNext);
 }
 
 scheduleCycleAtUTC([0, 6, 12, 18]);
+
 let allSlots = [];
-function getBackupSlots(serverId) {
-  let serverFolder = fs.readdirSync(`./backups/${serverId}`);
+async function getBackupSlots(serverId) {
+  const serverFolder = await fs.readdir(`./backups/${serverId}`);
   let backupSlots = [];
   for (let i = 0; i < serverFolder.length; i++) {
     const filename = serverFolder[i];
     const timestampStr = filename.split(".")[0];
     const timestamp = Number(timestampStr);
 
+    const stats = await fs.stat(`./backups/${serverId}/${filename}`);
     backupSlots.push({
       id: serverId,
       timestamp: timestamp,
-      size: fs.statSync(`./backups/${serverId}/${filename}`).size,
+      size: stats.size,
       key: security.getFileAccessKey(serverId),
     });
   }
@@ -167,4 +175,5 @@ function getBackupSlots(serverId) {
 function triggerBackupCycle() {
   cycle();
 }
+
 module.exports = { getBackupSlots, triggerBackupCycle };
