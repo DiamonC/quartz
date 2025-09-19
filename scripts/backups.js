@@ -4,6 +4,7 @@ const path = require("path");
 const execPromise = promisify(exec);
 const fs = require("fs").promises;
 const security = require("./security");
+const fsp = require("fs").promises;
 
 const servers = [];
 
@@ -57,13 +58,13 @@ async function getBackupsFolderSize() {
 // Helper: get total size of directory
 async function getDirSize(dir) {
 let total = 0;
-const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+const entries = await fsp.readdir(dir, { withFileTypes: true });
 for (const entry of entries) {
 const fullPath = path.join(dir, entry.name);
 if (entry.isDirectory()) {
 total += await getDirSize(fullPath);
 } else {
-const stats = await fs.promises.stat(fullPath);
+const stats = await fsp.stat(fullPath);
 total += stats.size;
 }
 }
@@ -78,7 +79,7 @@ const destDir = `./backups/${serverId}`;
 const destFile = path.join(destDir, `${timestamp}.zip`);
 console.log(destFile);
 
-await fs.promises.mkdir(destDir, { recursive: true });
+await fsp.mkdir(destDir, { recursive: true });
 
 
 // Get total size before starting
@@ -111,7 +112,7 @@ const match = line.match(/\s*adding: (.+)/);
 if (match) {
 const filePath = path.join(srcPath, match[1].trim());
 try {
-const stats = await fs.promises.stat(filePath);
+const stats = await fsp.stat(filePath);
 processedSize += stats.size;
 } catch (e) {
 // ignore missing files
