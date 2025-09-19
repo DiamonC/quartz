@@ -58,6 +58,10 @@ async function runZip(serverId, timestamp) {
       `./backups/${serverId}/${timestamp}.zip`,
       `./servers/${serverId}/world`,
     ]);
+    //log exact command being run
+    console.log(
+      `zip -r ./backups/${serverId}/${timestamp}.zip ./servers/${serverId}/world`
+    );
 
     zip.on("close", (code) => {
       if (code === 0) {
