@@ -594,7 +594,7 @@ process.stdin.on("data", (data) => {
       );
       break;
     case "backup":
-      backup();
+      backups.triggerBackupCycle();
       break;
     case "numServersOnline":
       let numServersOnline = 0;

@@ -162,5 +162,7 @@ function getBackupSlots(serverId) {
   return backupSlots;
 }
 
-
-module.exports = { getBackupSlots, };
+function triggerBackupCycle() {
+  cycle();
+}
+module.exports = { getBackupSlots, triggerBackupCycle };
