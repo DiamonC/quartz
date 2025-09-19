@@ -57,7 +57,8 @@ async function getBackupsFolderSize() {
 
 // Helper: get total size of directory
 async function getDirSize(dir) {
-let total = 0;
+try {
+  let total = 0;
 const entries = await fsp.readdir(dir, { withFileTypes: true });
 for (const entry of entries) {
 const fullPath = path.join(dir, entry.name);
@@ -69,6 +70,9 @@ total += stats.size;
 }
 }
 return total;
+} catch (err) { 
+  return 0;
+}
 }
 
 
