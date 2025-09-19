@@ -90,6 +90,7 @@ async function cycle() {
   console.log("Running backup cycle...");
 
   for (let i = 0; i < serverIds.length; i++) {
+    console.log(`Attempting to backup server ${serverIds[i]}...`);
     const serverId = serverIds[i];
     await fs.mkdir(`./backups/${serverId}`, { recursive: true });
 
