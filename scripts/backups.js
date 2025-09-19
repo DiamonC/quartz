@@ -107,7 +107,7 @@ async function cycle() {
         });
       }
     }
-
+    console.log(`Attempting to zip server ${serverIds[i]}...`);
     const timestamp = Date.now();
     try {
       await runZip(serverId, timestamp);
