@@ -113,7 +113,6 @@ function proxiesToggle(id, toggle, secret) {
 function getState(id) {
   if (states[id] == undefined) {
     states[id] = "false";
-    console.log("setting status of " + id + " to false on line #1");
   }
   return states[id];
 }
@@ -224,7 +223,7 @@ function run(
     let size = files.folderSizeRecursive(folder);
       //convert size to gb
       size = size / 1000000000;
-          console.log("checking storage" + size)
+          console.log("storage: " + size.toFixed(2)+ "/" + serverStorageLimit + "GB");
       if (size > serverStorageLimit) {
         states[id] = "false";
         console.log("setting status of " + id + " to false on line #12");
@@ -261,7 +260,6 @@ function run(
 
     //make software all lowercase
     software = software.toLowerCase();
-    console.log("SOFTWARE: " + software);
     switch (software) {
       case "paper":
         s = "paper";
@@ -325,7 +323,6 @@ function run(
     }
 
     let absolutePath = execSync("pwd").toString().trim();
-    console.log("absolutePath: " + absolutePath);
 
     if (software == "quilt") {
       absolutePath = absolutePath + "/servers/" + id;
@@ -942,9 +939,8 @@ function run(
       terminalOutput[id] = "[Crash]: Docker is not properly setup. Contact an admin.";
       states[id] = "false";
     }
-
-
-  console.log("setting status of " + id + " to false on line #10");
+          console.log(id + " exit, line #10");
+        console.log(terminalOutput[id].substring(terminalOutput[id].length-500, terminalOutput[id].length));
 });
           let count2 = 0;
           let intervalID = setInterval(() => {
@@ -1039,12 +1035,8 @@ ls.stderr.on("data", data => {
       ls.on("exit", (code) => {
                   if (states[id] != "false") terminalOutput[id] = out.join("\n");
         states[id] = "false";
-        console.log("setting status of " + id + " to false on line #11");
-
-        console.log(out);
-        console.log("code");
-        console.log(code)
-        console.log(terminalOutput[id]);
+        console.log(id + " exit, line #11, code " + code);
+        console.log(terminalOutput[id].substring(terminalOutput[id].length-500, terminalOutput[id].length));
 
         if (!fs.existsSync("logs/crash.txt")) {
           fs.writeFileSync("logs/crash.txt", "");
@@ -1461,7 +1453,6 @@ function killObstructingProcess(id) {
       `docker ps --filter "publish=${portOffset + id}" --format "{{.ID}}"`,
       (error, stdout, stderr) => {
         let pid = stdout.trim();
-        console.log("killing obstructing container " + pid);
         exec("docker stop " + pid);
 
         setTimeout(() => {
