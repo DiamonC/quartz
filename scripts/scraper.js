@@ -14,7 +14,8 @@ async function downloadPaperJars() {
     const response = await fetch("https://api.papermc.io/v2/projects/paper");
     const paperVersions = await response.json();
     for (let i in paperVersions.versions) {
-        let version = paperVersions.versions[i];
+        try {
+            let version = paperVersions.versions[i];
         const response = await fetch(`https://api.papermc.io/v2/projects/paper/versions/${version}/builds`);
         const builds = await response.json();
         const build = builds.builds[builds.builds.length - 1].build;
@@ -41,7 +42,9 @@ async function downloadPaperJars() {
         }   
     }
 
-        
+        } catch (e) {
+            //console.log(e);
+        }
     
 
     }
