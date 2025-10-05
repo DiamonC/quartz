@@ -66,6 +66,7 @@ Router.post("/email/signup/", (req, res) => {
   function signup() {
 
     email = email.toLowerCase();
+    if (email.includes("email:")) email = email.replace("email:", "");
     try {
       if (fs.existsSync("accounts/email:" + email + ".json")) {
         emailExists = true;
@@ -313,6 +314,9 @@ Router.post("/discord/", (req, res) => {
         writeAccount(account.accountId, "discord:"+username, account.email, account.servers, 0, account.freeServers, account.lastSignin, account.token, account.salt, account.password, account.resetAttempts);
         res.status(200).send(response);
       } else {
+        let email = res2.email;
+        email = email.toLowerCase();
+        if (email.includes("email:")) email = email.replace("email:", "");
         let accountId = "acc_"+Buffer.from(nodeName + (nodeName.includes("*email:") ? "" : "*email:") + email.substring(0, 7)).toString('base64url');
 
         account.accountId = accountId;
@@ -325,7 +329,7 @@ Router.post("/discord/", (req, res) => {
         }
 
         account.type = "discord";
-        account.email = res2.email.toLowerCase();
+        account.email = email;
         account.servers = [];
         account.freeServers = 0;
         account.lastSignin = new Date().getTime();
