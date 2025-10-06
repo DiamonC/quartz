@@ -317,7 +317,7 @@ Router.post("/discord/", (req, res) => {
         let email = res2.email;
         email = email.toLowerCase();
         if (email.includes("email:")) email = email.replace("email:", "");
-        let accountId = "acc_"+Buffer.from(nodeName + (nodeName.includes("*email:") ? "" : "*email:") + email.substring(0, 7)).toString('base64url');
+        let accountId = "acc_"+Buffer.from(nodeName + (nodeName.includes("*email:") ? "" : "*discord:") + username.substring(0, 7)).toString('base64url');
 
         account.accountId = accountId;
         account.token = uuidv4();
