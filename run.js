@@ -268,7 +268,6 @@ setInterval(() => {
 }, 1000 * 60 * 60 * 2);
 setInterval(() => {
 
-  checkSubscriptions();
   // Start periodic tasks (includes subscription checks and subdomain cleanup)
   utils.runPeriodicTasks();
   backup();
