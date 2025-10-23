@@ -193,8 +193,10 @@ try {
                                                  subItem.ended_at = customerSubscriptions[i].ended_at;
                                                  subItem.current_period_end = customerSubscriptions[i].current_period_end;
                                                  subItem.start_date = customerSubscriptions[i].start_date;
-                                                 console.log("Server Slot " + data[j].serverId + " subscription: ");
-                                                  console.log(subItem);
+                                                 console.log(customers.data[k].id + " Server Slot " + data[j].serverId + " subscription: ");
+                                                  console.log(JSON.stringify(subItem));
+
+                                                  
                                                   subscriptionsA.push(subItem);
                                                   
                                                 }
@@ -294,7 +296,7 @@ try {
                                                  subItem.ended_at = customerSubscriptions[i].ended_at;
                                                  subItem.current_period_end = customerSubscriptions[i].current_period_end;
                                                  subItem.start_date = customerSubscriptions[i].start_date;
-                                                                                                  console.log("Server Slot " + data[j].serverId + " subscription: ");
+                                                                                                  console.log(customers.data[k].id + "Server Slot " + data[j].serverId + " subscription: ");
                                                  console.log(subItem);
                                               
                                                   subscriptionsA.push(subItem);
@@ -403,6 +405,11 @@ try {
             //if it has been 7 days since the latest cancellation date, move to trashbin
             if (Date.now() - latestEndDate > 1000 * 60 * 60 * 24 * 7) {
               console.log("Moving server " + data[i].serverId + " to trashbin.");
+              let logLine = "server " + data[i].serverId + " moved to trashbin. Subscription data: \n" +JSON.stringify(data[i], null, 2) + "\n";
+              if (!fs.existsSync("logs/trashbin.log")) {
+                fs.writeFileSync("logs/trashbin.log", "");
+              }
+              fs.appendFileSync("logs/trashbin.log", logLine);
               if (!fs.existsSync("trashbin")) {
                 fs.mkdirSync("trashbin");
               }
