@@ -213,11 +213,11 @@ function run(
 
         let count = 0;
     //check if server is over storage limit
-    let serverStorageLimit = 10;
+    let serverStorageLimit = 16;
     if (config.plus == server.productID) {
-      serverStorageLimit = 15;
+      serverStorageLimit = 24;
     } else if (config.premium == server.productID) {
-      serverStorageLimit = 20;
+      serverStorageLimit = 32;
     }
 
     let size = files.folderSizeRecursive(folder);
