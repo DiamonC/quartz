@@ -1226,13 +1226,13 @@ router.get("/:id/storageInfo", function (req, res) {
     let plugins = files.folderSizeRecursive(`servers/${req.params.id}/plugins`);
     let mods = files.folderSizeRecursive(`servers/${req.params.id}/mods`);
     let worlds = files.folderSizeRecursive(`servers/${req.params.id}/world`);
-    let serverStorageLimit = 10;
+    let serverStorageLimit = 16;
     if (config.plus == server.productID) {
-      serverStorageLimit = 15;
+      serverStorageLimit = 24;
     } else if (config.premium == server.productID) {
-      serverStorageLimit = 20;
+      serverStorageLimit = 32;
     } else if (config.max == server.productID) {
-      serverStorageLimit = 25;
+      serverStorageLimit = 48;
     }
     limit = serverStorageLimit * 1024 * 1024 * 1024;
 
