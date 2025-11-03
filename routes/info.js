@@ -59,7 +59,7 @@ router.get(`/servers`, function (req, res) {
 
 
   
-        account.servers[i] = parseInt(account.servers[i]);
+
 
         let hasValidSubscription = true;
         let parsedSuccesfully = false;
@@ -104,6 +104,14 @@ try {
           hasValidSubscription = true;
         }
       }
+
+              
+        if (account.servers[i].includes(":freed")) {
+          hasValidSubscription = false;
+        } else {
+          account.servers[i] = parseInt(account.servers[i]);
+        }
+
         if (!hasValidSubscription && parsedSuccesfully) {
           account.servers[i] = account.servers[i] + ":no valid subscription:" + resetDate;
         } else if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
