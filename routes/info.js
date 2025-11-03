@@ -107,12 +107,8 @@ try {
 
               
         if (account.servers[i].includes(":freed")) {
-          hasValidSubscription = false;
-        } else {
-          account.servers[i] = parseInt(account.servers[i]);
-        }
-
-        if (!hasValidSubscription && parsedSuccesfully) {
+          account.servers[i] = account.servers[i].replace(":freed", "") + ":no valid subscription:" + -1;
+        } else if (!hasValidSubscription && parsedSuccesfully) {
           account.servers[i] = account.servers[i] + ":no valid subscription:" + resetDate;
         } else if (fs.existsSync(`servers/${account.servers[i]}/server.json`)) {
         account.servers[i] = readJSON(
