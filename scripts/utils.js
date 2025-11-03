@@ -115,8 +115,8 @@ function checkSubscriptions() {
       let data = [];
       for (let i in servers) {
    
-        let owner = null;
-        let email = null;
+
+
         try {
           const serverId = servers[i];
           let storage = 0;
@@ -131,7 +131,10 @@ try {
               let json = readJSON(`servers/${serverId}/server.json`);
             if (json.adminServer == undefined || json.adminServer == false) {
               const accountId = json.accountId;
-              fs.readdirSync("accounts").forEach((file) => {
+              fs.readdirSync("accounts").forEach((file) => 
+                {
+                let owner = null;
+                        let email = null;
                 const account = readJSON(`accounts/${file}`);
                 if (account.accountId == accountId && file != "noemail.json") {
                   owner = file;
@@ -403,45 +406,87 @@ try {
             console.log("Time to trash? " + timeToTrash);
             if (timeToTrash && !adminServer && !newOwner) {
             //if it has been 7 days since the latest cancellation date, move to trashbin
-            if (Date.now() - latestEndDate > 1000 * 60 * 60 * 24 * 7) {
-              console.log("Moving server " + data[i].serverId + " to trashbin.");
-              let logLine = "server " + data[i].serverId + " moved to trashbin. Subscription data: \n" +JSON.stringify(data[i], null, 2) + "\n";
-              if (!fs.existsSync("logs/trashbin.log")) {
-                fs.writeFileSync("logs/trashbin.log", "");
-              }
-              fs.appendFileSync("logs/trashbin.log", logLine);
-              if (!fs.existsSync("trashbin")) {
-                fs.mkdirSync("trashbin");
-              }
-try {
-                if (fs.existsSync(`servers/${data[i].serverId}`) && !fs.existsSync(`trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`)) {
-                fs.renameSync(
-                  `servers/${data[i].serverId}`,
-                  `trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`
-                );
-                //sometimes a empty folder is left behind, so we delete it
-                if (fs.existsSync(`servers/${data[i].serverId}`)) {
-                  fs.rmSync(`servers/${data[i].serverId}`, { recursive: true, force: true });
-                }
+if (Date.now() - latestEndDate > 1000 * 60 * 60 * 24 * 7) {
+  console.log("Checking Stripe subscriptions for " + data[i].email + " before moving server " + data[i].serverId);
+  
+  // Search for customer by email
+  stripe.customers.list({
+    email: data[i].email,
+    limit: 1
+  })
+  .then(customers => {
+    let hasActiveSubscription = false;
 
-                //in the accoount file, add :freed to the serverId
-                let account = readJSON(`accounts/${data[i].owner}`);
-                if (account.servers.includes(data[i].serverId)) {
-                  account.servers = account.servers.filter(
-                    (server) => server !== data[i].serverId
-                  );
-                  account.servers.push(data[i].serverId + ":freed");
-                  writeJSON(`accounts/${data[i].owner}`, account);
-                }
-              } else if (fs.existsSync(`servers/${data[i].serverId}`)) {
-                console.log("Deleting empty server folder " + data[i].serverId);
-                fs.rmSync(`servers/${data[i].serverId}`, { recursive: true, force: true });
-              }
-} catch (e) {
-  console.log("Error moving server to trashbin " + data[i].serverId);
-  console.log(e);
+    if (customers.data.length > 0) {
+      const customerId = customers.data[0].id;
+      
+      // Get all subscriptions for this customer
+      return stripe.subscriptions.list({
+        customer: customerId,
+        status: 'active',
+        limit: 100
+      });
+    } else {
+      // No customer found, return empty result
+      return { data: [] };
+    }
+  })
+  .then(subscriptions => {
+    // Check if any active subscriptions exist
+    if (subscriptions.data.length > 0) {
+      console.log("Found active subscription(s) for " + data[i].email + ", skipping server " + data[i].serverId);
+      return; // Exit early if subscriptions found
+    }
+
+    // Only proceed with moving to trashbin if no active subscriptions found
+    console.log("No active subscriptions found. Moving server " + data[i].serverId + " to trashbin.");
+    let logLine = "server " + data[i].serverId + " moved to trashbin. Subscription data: \n" + JSON.stringify(data[i], null, 2) + "\n";
+    
+    if (!fs.existsSync("logs/trashbin.log")) {
+      fs.writeFileSync("logs/trashbin.log", "");
+    }
+    fs.appendFileSync("logs/trashbin.log", logLine);
+    
+    if (!fs.existsSync("trashbin")) {
+      fs.mkdirSync("trashbin");
+    }
+
+    try {
+      if (fs.existsSync(`servers/${data[i].serverId}`) && !fs.existsSync(`trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`)) {
+        fs.renameSync(
+          `servers/${data[i].serverId}`,
+          `trashbin/${data[i].serverId}-${data[i].owner.split(".json")[0]}`
+        );
+        
+        // Sometimes an empty folder is left behind, so we delete it
+        if (fs.existsSync(`servers/${data[i].serverId}`)) {
+          fs.rmSync(`servers/${data[i].serverId}`, { recursive: true, force: true });
+        }
+        
+        // In the account file, add :freed to the serverId
+        let account = readJSON(`accounts/${data[i].owner}`);
+        if (account.servers.includes(data[i].serverId)) {
+          account.servers = account.servers.filter(
+            (server) => server !== data[i].serverId
+          );
+          account.servers.push(data[i].serverId + ":freed");
+          writeJSON(`accounts/${data[i].owner}`, account);
+        }
+      } else if (fs.existsSync(`servers/${data[i].serverId}`)) {
+        console.log("Deleting empty server folder " + data[i].serverId);
+        fs.rmSync(`servers/${data[i].serverId}`, { recursive: true, force: true });
+      }
+    } catch (e) {
+      console.log("Error moving server to trashbin " + data[i].serverId);
+      console.log(e);
+    }
+  })
+  .catch(stripeError => {
+    console.log("Error checking Stripe subscriptions for " + data[i].email);
+    console.log(stripeError);
+    // Optionally: you can decide whether to proceed with deletion or skip on Stripe errors
+  });
 }
-            }
 
           } else {
             console.log("Server " + data[i].serverId + " has an active subscription.");
