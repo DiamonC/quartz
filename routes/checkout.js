@@ -35,7 +35,8 @@ Router.post("/:priceId", async (req, res) => {
         },
       ],
       mode: "subscription",
-      return_url: config.stripeReturnUrl,
+...(uiMode === "embedded" && { return_url: config.stripeReturnUrl }),
+...(uiMode === "hosted" && { success_url: config.stripeReturnUrl, cancel_url: "https://servers.arthmc.xyz/signup/plans" }),
       automatic_tax: { enabled: true },
     });
 
