@@ -39,7 +39,7 @@ Router.post("/:priceId", async (req, res) => {
       automatic_tax: { enabled: true },
     });
 
-    res.send({ clientSecret: session.client_secret });
+    res.send({ clientSecret: session.client_secret, url: session.url });
   } catch (err) {
     console.log(err);
     res.status(500).send({ error: err });
