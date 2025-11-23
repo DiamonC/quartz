@@ -36,7 +36,7 @@ Router.get("/referred_coupon", async (req, res) => {
   try {
     await stripe.coupons.create({
       id: couponId,
-      percent_off: 40,
+      percent_off: 50,
       duration: "once",
       name: couponId,
     });
