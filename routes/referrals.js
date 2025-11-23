@@ -8,7 +8,7 @@ const stripe = require("stripe")(stripeKey);
 // Hash function (predictable, static salt)
 function scrambleEmail(email) {
   
-  return "coupon_"+email.split('')[3]+ email.split('')[2] + email.split('')[4] + email.split('')[1] + email.split('')[5];
+  return "coupon-"+email.split('')[3]+ email.split('')[2] + email.split('')[4] + email.split('')[1] + email.split('')[5];
 
 }
 
@@ -39,6 +39,12 @@ Router.get("/referred_coupon", async (req, res) => {
       percent_off: 40,
       duration: "once",
       name: couponId,
+    });
+
+    //create the promotion code
+    await stripe.promotionCodes.create({
+      coupon: couponId,
+      code: couponId,
     });
 
     res.send(couponId);
