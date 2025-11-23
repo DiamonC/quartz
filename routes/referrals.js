@@ -73,7 +73,7 @@ Router.get("/referrer_coupon/:id", async (req, res) => {
     const used = invoices.data.some(inv => inv.discount?.coupon?.id === couponId);
     if (used) {
         //create a new coupon
-        let newId = "coupon_" + (() => Math.random().toString(36).slice(2, 2 + 8))();
+        let newId = "coupon-" + (() => Math.random().toString(36).slice(2, 2 + 8))();
         stripe.coupons.create({
           id: newId,
           percent_off: 40,
