@@ -1478,7 +1478,7 @@ router.get("/:id/backups", function (req, res) {
   let account = readJSON("accounts/" + email + ".json");
   let server = readJSON(`servers/${req.params.id}/server.json`);
   if (utils.hasAccess(token, account, req.params.id)) {
-    if (fs.existsSync(`backups/${req.params.id}/`)) {
+    if (!fs.existsSync(`backups/${req.params.id}/`)) fs.mkdirSync(`backups/${req.params.id}/`);
       try {
         res.status(200).json(backups.getBackupSlots(req.params.id));
       } catch (e) {
@@ -1488,7 +1488,7 @@ router.get("/:id/backups", function (req, res) {
     } else {
       res.status(401).json({ msg: "Invalid credentials." });
     }
-  }
+  
 });
 
 router.get("/:id/backup/:timestamp", function (req, res) {
