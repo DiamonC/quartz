@@ -15,8 +15,14 @@ let terminalInput = "";
 
 let players = [];
 
-const portOffset = 10000; 
+const portOffset = 10000;
 const idOffset = parseInt(config.idOffset);
+
+// Default JVM startup flags (Aikar's flags with -Xmx placeholder)
+// Users can modify this to customize RAM allocation or other flags
+const getDefaultStartupFlags = (allocatedRAM) => {
+  return `-Xmx${allocatedRAM}G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Daikars.new.flags=true -Dusing.aikars.flags=https://mcflags.emc.gs`;
+};
 
 let amountOfThreads = 16;
 
@@ -246,10 +252,9 @@ function run(
     }else {
       allocatedRAM = 4;
     }
+    let startupFlags = server.startupFlags || getDefaultStartupFlags(allocatedRAM);
     let args = [
-      "-Xmx" +
-        allocatedRAM +
-        "G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Daikars.new.flags=true -Dusing.aikars.flags=https://mcflags.emc.gs -jar server.jar",
+      startupFlags + " -jar server.jar",
     ];
     //make a new folder called name using fs
     let s = "paper";
@@ -398,7 +403,7 @@ function run(
         "servers/" + id + "/server.jar"
       );
       args = [
-        "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Daikars.new.flags=true -Dusing.aikars.flags=https://mcflags.emc.gs -jar server.jar install server " +
+        getDefaultStartupFlags(4) + " -jar server.jar install server " +
           version +
           " --download-server",
       ];
@@ -533,6 +538,10 @@ function run(
 
     if (server.javaVersion == undefined) {
       server.javaVersion = javaVer;
+    }
+
+    if (server.startupFlags == undefined) {
+      server.startupFlags = getDefaultStartupFlags(allocatedRAM);
     }
 
     utils.writeJSON("servers/" + id + "/server.json", server);
@@ -817,8 +826,8 @@ function run(
           timeToLoad = false;
           states[id] = "starting";
 
-          let args =
-            "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Daikars.new.flags=true -Dusing.aikars.flags=https://mcflags.emc.gs";
+          let startupFlags = server.startupFlags || getDefaultStartupFlags(allocatedRAM);
+          let args = startupFlags;
           //-Dlog4j.configurationFile=consoleconfig.xml
           //get the forge version from the name of the folder inside /libraries/net/minecraftforge/forge/
 

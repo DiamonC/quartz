@@ -209,14 +209,36 @@ try {
     
     res.status(200).json({
       msg: `Success: Got server info`,
-   
+
       desc: desc,
       secret: secret,
       proxiesEnabled: proxiesEnabled,
       automaticStartup: automaticStartup,
       allowedAccounts: allowedAccounts,
       javaVersion: server.javaVersion,
+      startupFlags: server.startupFlags || "",
     });
+  } else {
+    res.status(401).json({ msg: `Invalid credentials.` });
+  }
+});
+
+router.post(`/setStartupFlags`, function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  let server = readJSON("servers/" + req.params.id + "/server.json");
+
+  if (utils.hasAccess(token, account, req.params.id)) {
+    try {
+      const { flags } = req.body;
+      server.startupFlags = flags || "";
+      writeJSON("servers/" + req.params.id + "/server.json", server);
+      res.status(200).json({ msg: "Done" });
+    } catch (err) {
+      console.error("Error setting startup flags:", err);
+      res.status(500).json({ msg: "Error: " + err.message });
+    }
   } else {
     res.status(401).json({ msg: `Invalid credentials.` });
   }
