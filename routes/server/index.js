@@ -1480,9 +1480,9 @@ router.get("/:id/backups", function (req, res) {
   if (utils.hasAccess(token, account, req.params.id)) {
     if (!fs.existsSync(`backups/${req.params.id}/`)) fs.mkdirSync(`backups/${req.params.id}/`);
       try {
-     
+
         backups.getBackupSlots(req.params.id).then((data)=>{
-    
+
           res.status(200).json(data);
         })
       } catch (e) {
@@ -1492,7 +1492,41 @@ router.get("/:id/backups", function (req, res) {
     } else {
       res.status(401).json({ msg: "Invalid credentials." });
     }
-  
+
+});
+
+router.post("/:id/backup", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    try {
+      backups.triggerBackupCycle();
+      res.status(202).json({ msg: "Backup started." });
+    } catch (e) {
+      console.log(e);
+      res.status(500).json({ msg: "Error starting backup." });
+    }
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
+
+router.get("/:id/backup/progress", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    try {
+      const progress = backups.getBackupProgress(req.params.id);
+      res.status(200).json(progress || { status: "idle" });
+    } catch (e) {
+      console.log(e);
+      res.status(500).json({ msg: "Error getting backup progress." });
+    }
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
 });
 
 router.get("/:id/backup/:timestamp", function (req, res) {
@@ -1526,23 +1560,6 @@ router.get("/:id/backup/:timestamp", function (req, res) {
     }
   } else {
     res.status(500).json({ msg: "Error getting backups." });
-  }
-});
-
-router.post("/:id/backup", function (req, res) {
-  let email = req.headers.username;
-  let token = req.headers.token;
-  let account = readJSON("accounts/" + email + ".json");
-  if (utils.hasAccess(token, account, req.params.id)) {
-    try {
-      backups.triggerBackupCycle();
-      res.status(202).json({ msg: "Backup started." });
-    } catch (e) {
-      console.log(e);
-      res.status(500).json({ msg: "Error starting backup." });
-    }
-  } else {
-    res.status(401).json({ msg: "Invalid credentials." });
   }
 });
 

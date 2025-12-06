@@ -6,6 +6,9 @@ const security = require("./security");
 
 const servers = [];
 
+// Backup progress tracking
+const backupProgress = {};
+
 (async () => {
   try {
     await fs.access("./backups");
@@ -51,37 +54,96 @@ async function getBackupsFolderSize() {
   }
 }
 
-async function runZip(serverId, timestamp) {
-return new Promise((resolve, reject) => {
-console.log(`Starting backup for server ${serverId}...`);
-const zip = spawn("zip", [
-"-r",
-`./backups/${serverId}/${timestamp}.zip`,
-`./servers/${serverId}/world`,
-]);
-
-
-const progressLogger = setInterval(() => {
-console.log(`Backup for server ${serverId} is still running...`);
-}, 30000);
-
-
-zip.on("close", (code) => {
-clearInterval(progressLogger);
-if (code === 0 || code === 12) {
-console.log(`Successfully backed up server ${serverId}`);
-resolve();
-} else {
-reject(new Error(`Zip failed with code ${code}`));
+async function getWorldFileCount(serverId) {
+  try {
+    const { stdout } = await execPromise(`find ./servers/${serverId}/world -type f | wc -l`);
+    return parseInt(stdout.trim());
+  } catch (err) {
+    console.error("Error counting files:", err.message);
+    return 0;
+  }
 }
-});
 
+async function runZip(serverId, timestamp) {
+  return new Promise(async (resolve, reject) => {
+    console.log(`Starting backup for server ${serverId}...`);
 
-zip.on("error", (err) => {
-clearInterval(progressLogger);
-reject(err);
-});
-});
+    // Get total file count for progress calculation
+    const totalFiles = await getWorldFileCount(serverId);
+    let filesProcessed = 0;
+
+    backupProgress[serverId] = {
+      status: "in_progress",
+      progress: 0,
+      startTime: Date.now(),
+      timestamp: timestamp,
+      totalFiles: totalFiles,
+      filesProcessed: 0,
+    };
+
+    const zip = spawn("zip", [
+      "-r",
+      `./backups/${serverId}/${timestamp}.zip`,
+      `./servers/${serverId}/world`,
+    ]);
+
+    // Monitor stdout for file additions
+    if (zip.stdout) {
+      const readline = require("readline");
+      const rl = readline.createInterface({
+        input: zip.stdout,
+        crlfDelay: Infinity,
+      });
+
+      rl.on("line", (line) => {
+        // zip outputs lines like "  adding: servers/123/world/file.dat (stored 0%)"
+        if (line.includes("adding:")) {
+          filesProcessed++;
+          if (backupProgress[serverId] && totalFiles > 0) {
+            backupProgress[serverId].filesProcessed = filesProcessed;
+            backupProgress[serverId].progress = Math.min(
+              Math.round((filesProcessed / totalFiles) * 100),
+              99
+            );
+          }
+        }
+      });
+
+      rl.on("close", () => {
+        // stdout closed
+      });
+    }
+
+    zip.on("close", (code) => {
+      if (code === 0 || code === 12) {
+        console.log(`Successfully backed up server ${serverId}`);
+        if (backupProgress[serverId]) {
+          backupProgress[serverId].status = "completed";
+          backupProgress[serverId].progress = 100;
+          backupProgress[serverId].completedTime = Date.now();
+          // Keep progress for 10 seconds then clear
+          setTimeout(() => {
+            delete backupProgress[serverId];
+          }, 10000);
+        }
+        resolve();
+      } else {
+        reject(new Error(`Zip failed with code ${code}`));
+        if (backupProgress[serverId]) {
+          backupProgress[serverId].status = "failed";
+          backupProgress[serverId].error = `Zip failed with code ${code}`;
+        }
+      }
+    });
+
+    zip.on("error", (err) => {
+      if (backupProgress[serverId]) {
+        backupProgress[serverId].status = "failed";
+        backupProgress[serverId].error = err.message;
+      }
+      reject(err);
+    });
+  });
 }
 
 async function cycle() {
@@ -192,4 +254,8 @@ function triggerBackupCycle() {
   cycle();
 }
 
-module.exports = { getBackupSlots, triggerBackupCycle };
+function getBackupProgress(serverId) {
+  return backupProgress[serverId] || null;
+}
+
+module.exports = { getBackupSlots, triggerBackupCycle, getBackupProgress };
