@@ -232,6 +232,22 @@ router.get(`/`, function (req, res) {
   for (var key in readJSON("assets/data.json")) {
     returnObject[key] = readJSON("assets/data.json")[key];
   }
+
+  // Add adminAccess if user is authenticated
+  returnObject["adminAccess"] = false;
+  if (mode === "solo") {
+    returnObject["adminAccess"] = true;
+  } else if (req.headers.username && req.headers.token) {
+    try {
+      const account = readJSON(`accounts/${req.headers.username}.json`);
+      if (req.headers.token === account.token && account.adminAccess === true) {
+        returnObject["adminAccess"] = true;
+      }
+    } catch (err) {
+      // Account not found or error reading, adminAccess stays false
+    }
+  }
+
   res.json(returnObject);
 });
 
