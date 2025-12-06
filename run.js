@@ -253,34 +253,6 @@ fs.readdirSync("assets/uploads").forEach((file) => {
   fs.unlinkSync(`assets/uploads/${file}`);
 });
 
-const datajson = readJSON("./assets/data.json");
-if (Date.now() - datajson.lastUpdate > 1000 * 60 * 60 * 6) {
-  downloadJars("partial");
-  checkSubscriptions();
-  // Start periodic tasks (includes subscription checks and subdomain cleanup)
-  utils.runPeriodicTasks();
-  backup();
-  refreshTempToken();
-  refreshFileAccess();
-  removeUnusedAccounts();
-}
-setInterval(() => {
-  downloadJars("partial");
-}, 1000 * 60 * 60 * 2);
-setInterval(() => {
-
-  // Start periodic tasks (includes subscription checks and subdomain cleanup)
-  utils.runPeriodicTasks();
-  backup();
-  refreshTempToken();
-  refreshFileAccess();
-  removeUnusedAccounts();
-}, 1000 * 60 * 60 * 12);
-
-setInterval(() => {
-  downloadJars("full");
-}, 1000 * 60 * 60 * 24);
-
 function refreshTempToken() {
   const datajson = readJSON("./assets/data.json");
 
@@ -1059,6 +1031,54 @@ schedules.startScheduler(require("./scripts/mc.js"), files);
     }
   } catch (err) {
     console.error("[Init] Error initializing server backup tasks:", err);
+  }
+})();
+
+// Register system functions for the scheduler
+schedules.registerFunction("downloadPartialJars", async () => {
+  console.log("[System Task] Downloading partial jars...");
+  downloadJars("partial");
+});
+
+schedules.registerFunction("downloadFullJars", async () => {
+  console.log("[System Task] Downloading full jars...");
+  downloadJars("full");
+});
+
+schedules.registerFunction("runPeriodicMaintenance", async () => {
+  console.log("[System Task] Running periodic maintenance...");
+  utils.runPeriodicTasks();
+  refreshTempToken();
+  refreshFileAccess();
+  removeUnusedAccounts();
+});
+
+// Create system tasks for maintenance
+(async () => {
+  try {
+    const allSchedules = schedules.readSchedules();
+
+    // Check if maintenance tasks already exist
+    const hasPartialJarTask = allSchedules.systemTasks.some((t) => t.command === "downloadPartialJars");
+    const hasFullJarTask = allSchedules.systemTasks.some((t) => t.command === "downloadFullJars");
+    const hasMaintenanceTask = allSchedules.systemTasks.some((t) => t.command === "runPeriodicMaintenance");
+
+    if (!hasPartialJarTask) {
+      schedules.createSystemTask(null, "Download Partial Jars", "function", "0 */2 * * *", "downloadPartialJars");
+      console.log("[Init] Created system task: Download Partial Jars (every 2h)");
+    }
+
+    if (!hasFullJarTask) {
+      schedules.createSystemTask(null, "Download Full Jars", "function", "0 0 * * *", "downloadFullJars");
+      console.log("[Init] Created system task: Download Full Jars (daily)");
+    }
+
+    if (!hasMaintenanceTask) {
+      schedules.createSystemTask(null, "Periodic Maintenance", "function", "0 */12 * * *", "runPeriodicMaintenance");
+      console.log("[Init] Created system task: Periodic Maintenance (every 12h)");
+    }
+  } catch (err) {
+    console.error("[Init] Error creating system tasks:", err);
   }
 })();
 

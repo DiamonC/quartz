@@ -7,10 +7,20 @@ const SCHEDULES_FILE = "./assets/schedules.json";
 // Import other scripts needed for task execution
 let mc = null;
 let files = null;
+const registeredFunctions = {}; // Store registered functions for "function" type tasks
 
 function setDependencies(mcScript, filesScript) {
   mc = mcScript;
   files = filesScript;
+}
+
+// Register a function to be used by function-type tasks
+function registerFunction(functionName, fn) {
+  if (typeof fn !== "function") {
+    throw new Error("Second argument must be a function");
+  }
+  registeredFunctions[functionName] = fn;
+  console.log(`[Scheduler] Registered function: ${functionName}`);
 }
 
 // Initialize schedules file if it doesn't exist
@@ -212,6 +222,9 @@ async function executeTask(task) {
       case "restart":
         await executeRestart(task);
         break;
+      case "function":
+        await executeFunction(task);
+        break;
       default:
         console.error(`Unknown task type: ${task.type}`);
     }
@@ -292,6 +305,23 @@ async function executeRestart(task) {
   }, 5 * 60 * 1000);
 }
 
+// Execute function task
+async function executeFunction(task) {
+  const fn = registeredFunctions[task.command];
+
+  if (!fn) {
+    console.error(`[Scheduler] Function not found: ${task.command}`);
+    return;
+  }
+
+  try {
+    const result = await fn(task.serverId);
+    console.log(`[Scheduler] Function executed: ${task.command} for server ${task.serverId}`);
+  } catch (err) {
+    console.error(`[Scheduler] Function failed: ${task.command}`, err);
+  }
+}
+
 // Start the scheduler - should be called from run.js
 function startScheduler(mcScript, filesScript) {
   setDependencies(mcScript, filesScript);
@@ -332,4 +362,5 @@ module.exports = {
   calculateNextRun,
   setDependencies,
   readSchedules,
+  registerFunction,
 };
