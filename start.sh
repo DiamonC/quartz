@@ -18,8 +18,14 @@ if [ -z "$USERNAME" ]; then
 fi
 
 # Dynamically determine UID/GID
-FTP_UID=$(id -u "$USERNAME")
-FTP_GID=$(id -g "$USERNAME")
+# If running as root, default to 1000:1000
+if [ "$USERNAME" = "root" ]; then
+  FTP_UID=1000
+  FTP_GID=1000
+else
+  FTP_UID=$(id -u "$USERNAME")
+  FTP_GID=$(id -g "$USERNAME")
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SERVER_DIR="$SCRIPT_DIR/servers"

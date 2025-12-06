@@ -11,6 +11,7 @@ const writeJSON = require("../scripts/utils.js").writeJSON;
 const config = require("../scripts/utils.js").getConfig();
 const readJSON = require("../scripts/utils.js").readJSON;
 const enableCloudflareVerify = JSON.parse(config.enableCloudflareVerify);
+const mode = config.mode;
 
 const nodeName = config.nodeName || "quartz";  
 
@@ -233,7 +234,7 @@ Router.post("/email/resetPassword/", async (req, res) => {
         sameDay = true;
       }
       console.log("sameDay " + sameDay)
-      if (sameDay || config.providerMode === false) {
+      if (sameDay || mode === "solo") {
         if (password == confirmPassword) {
           if (password.length >= 7) {
             [salt, password] = files.hash(password).split(":");

@@ -4,9 +4,9 @@ nodeName=quartz
 address=arthmc.xyz
 # ID Offset (Recommended to be in increments of 100)
 idOffset=0
-# Do you want to make users pay for servers? (If so, you'll need a Stripe API Key):
-providerMode=false
-# We highly reccomend using docker in providerMode for security. Also, it is necescary for FTP in any mode.
+# Mode: solo (no accounts/payments), user (accounts, no payments), or provider (accounts + payments)
+mode=provider
+# We highly reccomend using docker in provider mode for security. Also, it is necescary for FTP in any mode.
 dockerMode=true
 # The maximum amount of servers that this panel is allowed to create:
 maxServers=8

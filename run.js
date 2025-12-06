@@ -100,7 +100,7 @@ if (!fs.existsSync("config.txt")) {
   }
 
   //mechanism to make sure config isn't being messed up
-  let providerMode;
+  let mode;
   let stripeKey;
   for (let i in template) {
     if (template[i].includes("stripeKey")) {
@@ -108,12 +108,12 @@ if (!fs.existsSync("config.txt")) {
     }
   }
   for (let i in current) {
-    if (current[i].includes("providerMode")) {
-      providerMode = current[i].split("=")[1];
+    if (current[i].includes("mode")) {
+      mode = current[i].split("=")[1];
     }
   }
 
-  if (!(providerMode == "true" && stripeKey.split("").length < 10)) {
+  if (!(mode == "provider" && stripeKey.split("").length < 10)) {
     fs.writeFileSync("config.txt", template.join("\n"));
   } else {
     console.log("Error with writing config. Exiting...");

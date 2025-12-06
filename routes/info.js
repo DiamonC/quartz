@@ -8,7 +8,7 @@ const files = require("../scripts/files.js");
 const config = require("../scripts/utils.js").getConfig();
 const readJSON = require("../scripts/utils.js").readJSON;
 const writeJSON = require("../scripts/utils.js").writeJSON;
-const providerMode = JSON.parse(config.providerMode);
+const mode = config.mode;
 const stripeKey = config.stripeKey;
 const stripe = require("stripe")(stripeKey);
 const security = require("../scripts/security.js");
@@ -17,7 +17,7 @@ router.get(`/servers`, function (req, res) {
   email = req.headers.username;
   token = req.headers.token;
 
-  if (!providerMode) email = "noemail";
+  if (mode === "solo") email = "noemail";
   //prevents a crash that has occurred
   if (email != undefined) {
     account = readJSON(`accounts/${email}.json`);
@@ -25,13 +25,13 @@ router.get(`/servers`, function (req, res) {
     console.log("../accounts/" + email + ".json");
   }
   console.log(token + " " + account.token);
-  if (token === account.token || !providerMode) {
+  if (token === account.token || mode === "solo") {
     //if req.body.email is "noemail" return 404
     if (req.query.username == ("noemail" | "undefined")) {
       //res.status(404).json({ msg: `Invalid email.` });
     }
 
-    if (!providerMode) {
+    if (mode === "solo") {
 
       let serverFolder = fs.readdirSync("servers");
       //if length is 0, create a server folder
@@ -64,7 +64,7 @@ router.get(`/servers`, function (req, res) {
         let hasValidSubscription = true;
         let parsedSuccesfully = false;
                 let resetDate = -1;
-        if (providerMode) {
+        if (mode === "provider") {
           hasValidSubscription = false;
                   let subscriptionsJson = readJSON(`logs/subscriptions.json`);
                   let latestStartDate = 0;
@@ -137,8 +137,8 @@ router.get(`/billing`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON(`accounts/${email}.json`);
-  if (!providerMode) email = "noemail";
-  if (token === account.token || !providerMode) {
+  if (mode === "solo") email = "noemail";
+  if (token === account.token || mode === "solo") {
     let subscriptionsArray = [];
     stripe.customers.list(
       {
@@ -221,8 +221,7 @@ router.get(`/`, function (req, res) {
   let returnObject = {};
   //add every non-secret from config and everything from data.json to returnObject
   returnObject["address"] = config.address;
-  returnObject["providerMode"] = config.providerMode;
-  returnObject["providerMode"] = config.providerMode;
+  returnObject["mode"] = config.mode;
   returnObject["maxServers"] = config.maxServers;
   returnObject["serverStorageLimit"] = config.serverStorageLimit;
   returnObject["enableVirusScan"] = config.enableVirusScan;

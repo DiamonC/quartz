@@ -357,7 +357,7 @@ function run(
 
 
     //the .1 is to let java have some extra room to prevent crashes
-    let prefix = `docker run -m ${allocatedRAM}.1g -i -v ${absolutePath}/servers/${id}:/server -w /server -p ${port}:${port}/tcp -p ${port}:${port}/udp -p ${port + 66}:${port + 66}/tcp -p ${port + 33}:${port + 33}/udp --user 1000:1000 --cpuset-cpus="${threadsString}" openjdk:${javaVer} java`;
+    let prefix = `docker run -m ${allocatedRAM}.1g -i -v ${absolutePath}/servers/${id}:/server -w /server -p ${port}:${port}/tcp -p ${port}:${port}/udp -p ${port + 66}:${port + 66}/tcp -p ${port + 33}:${port + 33}/udp --user 1000:1000 --cpuset-cpus="${threadsString}" eclipse-temurin:${javaVer} java`;
     console.log("prefix: " + prefix);
 
     let doneInstallingServer = false;

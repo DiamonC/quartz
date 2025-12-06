@@ -17,7 +17,7 @@ const utils = require("../../scripts/utils.js");
 
 const stripeKey = config.stripeKey;
 const stripe = require("stripe")(stripeKey);
-const providerMode = JSON.parse(config.providerMode);
+const mode = config.mode;
 const enableVirusScan = JSON.parse(config.enableVirusScan);
 const portOffset = 10000;
 const idOffset = parseInt(config.idOffset);
@@ -76,7 +76,7 @@ router.get(`/reserve`, function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
-  if (token === account.token || !providerMode) {
+  if (token === account.token || mode === "solo") {
     let resObj = { atCapacity: true, id: -1 };
     //see if there is an available id
     let id = -1;  // Initialize to -1 instead of idOffset - 1
@@ -118,12 +118,12 @@ router.get(`/claim/:id`, function (req, res) {
   let token = req.headers.token;
   let account = readJSON("accounts/" + email + ".json");
   let id = req.params.id;
-  if ((token === account.token && account != undefined) || !providerMode) {
+  if ((token === account.token && account != undefined) || mode === "solo") {
     if (id < idOffset + parseInt(config.maxServers)) {
       console.log(account.servers + " servers");
       let hasPayedForServer = false;
       console.log("claiming server " + id);
-      if (providerMode) {
+      if (mode === "provider") {
         stripe.customers.list(
           {
             limit: 100,
@@ -546,8 +546,8 @@ router.post(`/new/:id`, function (req, res) {
     let email = req.headers.username;
     let token = req.headers.token;
     let id = req.params.id;
-    if (!providerMode) email = "noemail";
-    //if (providerMode) checkSubscriptions();
+    if (mode === "solo") email = "noemail";
+    //if (mode === "provider") checkSubscriptions();
     let account = readJSON("accounts/" + email + ".json");
     console.log(
       "creating server for " +
@@ -557,7 +557,7 @@ router.post(`/new/:id`, function (req, res) {
     );
     console.log("../accounts/" + email + ".json");
     console.log("account", account);
-    if (token === account.token || !providerMode) {
+    if (token === account.token || mode === "solo") {
       if (!fs.existsSync("servers/" + id + "/server.json")) {
         console.log(id);
         console.log(account.servers);
@@ -591,7 +591,7 @@ router.post(`/new/:id`, function (req, res) {
           let cid = "";
           console.log("debug: " + email + req.headers.username + em);
           if (
-            (!providerMode ||
+            (mode === "solo" ||
               (account.servers.length == account.freeServers &&
                 account.freeServers > 0)) &&
             (config.maxServers > datajson.numServers ||
@@ -866,7 +866,7 @@ router.delete(`/:id`, function (req, res) {
       if (
         files.hash(req.body.password, account.salt).split(":")[1] ==
           account.password ||
-        !providerMode ||
+        mode === "solo" ||
         account.type != "email"
       ) {
         console.log("deleting2 " + req.params.id);

@@ -2,20 +2,23 @@ const fs = require('fs');
 process.stdin.setEncoding('utf8');
 
 console.log(`We're going to quickly setup this instance of quartz now.\n`);
-console.log(`(1/4) Enable provider mode? (If you don't know what this is, say false):`);
+console.log(`(1/4) Select mode: (solo/user/provider)`);
+console.log(`  - solo: No accounts or payments, single user`);
+console.log(`  - user: Accounts enabled, no payments`);
+console.log(`  - provider: Accounts + Stripe payment processing`);
+console.log(`Enter your choice:`);
 
-let providerMode;
+let mode;
 process.stdin.once('data', (input) => {
-  const trimmedInput = input.trim();
+  const trimmedInput = input.trim().toLowerCase();
 
-  
-  if (trimmedInput === 'true' || trimmedInput === 'false') {
-    let parsedBool = trimmedInput === 'true';
-    providerMode = parsedBool;
-    if (parsedBool) {
-        console.log(`\n(2/4) Enable docker mode? (HIGHLY RECCOMENDED for provider mode):`);
+
+  if (trimmedInput === 'solo' || trimmedInput === 'user' || trimmedInput === 'provider') {
+    mode = trimmedInput;
+    if (mode === 'provider') {
+        console.log(`\n(2/4) Enable docker mode? (HIGHLY RECOMMENDED for provider mode):`);
     } else {
-        console.log(`\n(2/4) Enable docker mode? (Necesssary for FTP, you will need to figure out how to install docker):`);
+        console.log(`\n(2/4) Enable docker mode? (Necessary for FTP, you will need to figure out how to install docker):`);
     }
     process.stdin.once('data', (input) => {
       const dockerMode = input.trim() === 'true';
@@ -33,14 +36,14 @@ process.stdin.once('data', (input) => {
           const instanceName = input.trim();
 
           console.log(`\nSetting up Quartz with the following configuration:`);
-          console.log(`Provider Mode: ${providerMode}`);
+          console.log(`Mode: ${mode}`);
           console.log(`Docker Mode: ${dockerMode}`);
           console.log(`Max Servers: ${maxServers}`);
           console.log(`Instance Name: ${instanceName}`);
   fs.copyFileSync("assets/template/config.txt", "config.txt");
-          //look for the line with "providerMode=", etc
+          //look for the line with "mode=", etc
             let configContent = fs.readFileSync('config.txt', 'utf8');
-            configContent = configContent.replace(/providerMode=.*/, `providerMode=${providerMode}`);
+            configContent = configContent.replace(/mode=.*/, `mode=${mode}`);
             configContent = configContent.replace(/dockerMode=.*/, `dockerMode=${dockerMode}`);
             configContent = configContent.replace(/maxServers=.*/, `maxServers=${maxServers}`);
             configContent = configContent.replace(/nodeName=.*/, `nodeName=${instanceName}`);
