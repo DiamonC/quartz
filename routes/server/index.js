@@ -1480,7 +1480,11 @@ router.get("/:id/backups", function (req, res) {
   if (utils.hasAccess(token, account, req.params.id)) {
     if (!fs.existsSync(`backups/${req.params.id}/`)) fs.mkdirSync(`backups/${req.params.id}/`);
       try {
-        res.status(200).json(backups.getBackupSlots(req.params.id));
+     
+        backups.getBackupSlots(req.params.id).then((data)=>{
+    
+          res.status(200).json(data);
+        })
       } catch (e) {
         console.log(e);
         res.status(500).json({ msg: "Error getting backups." });

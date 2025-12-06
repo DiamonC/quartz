@@ -184,6 +184,7 @@ async function getBackupSlots(serverId) {
   }
   backupSlots.sort((a, b) => a.timestamp - b.timestamp);
   allSlots[serverId] = backupSlots;
+
   return backupSlots;
 }
 
