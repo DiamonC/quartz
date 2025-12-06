@@ -16,6 +16,7 @@
     "@mysql/xdevapi": "^8.0.35",
     "base62": "^2.0.2",
     "btoa": "^1.2.1",
+    "cron-parser": "^4.0.1",
     "cors": "^2.8.5",
     "decompress": "^4.2.1",
     "diff": "^5.1.0",

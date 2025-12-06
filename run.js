@@ -39,6 +39,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const files = require("./scripts/files.js");
 const scraper = require("./scripts/scraper.js");
+const schedules = require("./scripts/schedules.js");
 
 
 if (!fs.existsSync("config.txt")) {
@@ -1011,6 +1012,55 @@ adminApp.use("/", require("./routes/dashboard"));
 // port
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Listening on Port: ${port}`));
+
+// Initialize scheduler
+schedules.startScheduler(require("./scripts/mc.js"), files);
+
+// Automatically add a 6-hour backup task for servers before dataVer 1
+(async () => {
+  try {
+    const serversFolder = fs.readdirSync("servers");
+    const allSchedules = schedules.readSchedules();
+
+    for (const serverDir of serversFolder) {
+      // Skip non-numeric folders
+      if (isNaN(parseInt(serverDir))) continue;
+
+      const serverId = serverDir;
+      const serverJsonPath = `servers/${serverId}/server.json`;
+
+      // Check if server.json exists
+      if (!fs.existsSync(serverJsonPath)) continue;
+
+      try {
+        const serverData = readJSON(serverJsonPath);
+
+        // Check if dataVersion is missing
+        if (serverData.dataVersion === undefined) {
+          // Set dataVersion to 1
+          serverData.dataVersion = 1;
+          writeJSON(serverJsonPath, serverData);
+          console.log(`[Init] Set dataVersion=1 for server ${serverId}`);
+
+          // Check if backup task already exists for this server
+          const hasBackupTask = allSchedules.userTasks.some(
+            (t) => t.serverId === serverId && t.type === "backup"
+          );
+
+          // Create backup task if it doesn't exist
+          if (!hasBackupTask) {
+            schedules.createTask(serverId, `Auto-Backup (Every 6h)`, "backup", "0 */6 * * *");
+            console.log(`[Init] Created auto-backup task for server ${serverId}`);
+          }
+        }
+      } catch (err) {
+        console.error(`[Init] Error processing server ${serverId}:`, err.message);
+      }
+    }
+  } catch (err) {
+    console.error("[Init] Error initializing server backup tasks:", err);
+  }
+})();
 
 app.use((err, req, res, next) => {
   switch (err.message) {
