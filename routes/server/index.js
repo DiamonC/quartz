@@ -1529,6 +1529,23 @@ router.get("/:id/backup/:timestamp", function (req, res) {
   }
 });
 
+router.post("/:id/backup", function (req, res) {
+  let email = req.headers.username;
+  let token = req.headers.token;
+  let account = readJSON("accounts/" + email + ".json");
+  if (utils.hasAccess(token, account, req.params.id)) {
+    try {
+      backups.triggerBackupCycle();
+      res.status(202).json({ msg: "Backup started." });
+    } catch (e) {
+      console.log(e);
+      res.status(500).json({ msg: "Error starting backup." });
+    }
+  } else {
+    res.status(401).json({ msg: "Invalid credentials." });
+  }
+});
+
 router.get("/:id/players", function (req, res) {
   let email = req.headers.username;
   let token = req.headers.token;
@@ -1545,7 +1562,7 @@ router.get("/:id/players", function (req, res) {
             allPlayers.push({
               name: player.name,
               uuid: player.uuid,
-        
+
             });
           }
         }
