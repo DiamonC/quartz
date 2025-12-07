@@ -24,6 +24,7 @@ const idOffset = parseInt(config.idOffset);
 const stats = require("../../scripts/stats.js");
 const backups = require("../../scripts/backups.js");
 const security = require("../../scripts/security.js");
+const schedules = require("../../scripts/schedules.js");
 
 const checkSubscriptions = require("../../scripts/utils.js").checkSubscriptions;
 
@@ -620,6 +621,19 @@ router.post(`/new/:id`, function (req, res) {
               writeJSON("servers/" + id + "/server.json", server);
               console.log("debuglog2 " + id + server.id);
               writeJSON("accounts/" + email + ".json", account);
+
+              // Create automatic backup task every 6 hours
+              try {
+                schedules.createTask(
+                  parseInt(id),
+                  "Auto Backup (Every 6 Hours)",
+                  "backup",
+                  "0 */6 * * *" // CRON: every 6 hours at minute 0
+                );
+                console.log("Created automatic backup task for server " + id);
+              } catch (err) {
+                console.error("Error creating automatic backup task:", err);
+              }
             }
                           //restart the ftp container
                           try {
