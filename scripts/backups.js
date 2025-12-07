@@ -86,6 +86,9 @@ async function runZip(serverId, timestamp) {
       `./backups/${serverId}/${timestamp}.zip`,
       `./servers/${serverId}/world`,
     ]);
+    console.log("-r",
+      `./backups/${serverId}/${timestamp}.zip`,
+      `./servers/${serverId}/world`);
 
     // Monitor stdout for file additions
     if (zip.stdout) {
@@ -115,6 +118,7 @@ async function runZip(serverId, timestamp) {
     }
 
     zip.on("close", (code) => {
+      console.log("backup " + serverId + " code is " + code);
       if (code === 0 || code === 12) {
         console.log(`Successfully backed up server ${serverId}`);
         if (backupProgress[serverId]) {
